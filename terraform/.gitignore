@@ -4,6 +4,7 @@
 # .tfstate files
 *.tfstate
 *.tfstate.*
+*.terraform.lock.hcl
 
 # Crash log files
 crash.log
@@ -32,6 +33,4 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
-
-# ローカルで検証するためのフォルダ
-/bk
+*.zip
