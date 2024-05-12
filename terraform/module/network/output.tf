@@ -14,3 +14,15 @@ output "public_c_subnet_ids" {
 output "public_d_subnet_ids" {
   value       = aws_subnet.public_d.id
 }
+
+output "private_a_subnet_ids" {
+  value       = aws_subnet.private_a.id
+}
+
+output "private_c_subnet_ids" {
+  value       = aws_subnet.private_c.id
+}
+
+output "private_d_subnet_ids" {
+  value       = aws_subnet.private_d.id
+}
