@@ -2,7 +2,7 @@ provider "aws" {
   region = "ap-northeast-1"
   default_tags {
     tags = {
-      env     = "dev",
+      env     = "prod",
       project = "learn"
     }
   }
@@ -19,10 +19,10 @@ terraform {
   required_version = "= 1.8.3"
 
   backend "s3" {
-    bucket         = "learn-terraform-tfstate-dev" # create terraform s3 bucket
+    bucket         = "learn-terraform-tfstate-prod" # create terraform s3 bucket
     region         = "ap-northeast-1"
     key            = "terraform.tfstate"
     encrypt        = true
-    dynamodb_table = "learn-terraform-lock-dev" # dynamodb lock
+    dynamodb_table = "learn-terraform-lock-prod" # dynamodb lock
   }
 }
