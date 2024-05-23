@@ -34,4 +34,4 @@ override.tf.json
 terraform.rc
 
 # ローカルで検証するためのフォルダ
-/bk
+/.bk
