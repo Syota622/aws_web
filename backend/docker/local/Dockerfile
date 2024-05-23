@@ -36,9 +36,3 @@ COPY --from=builder /app/main .
 # airのインストール
 RUN go install github.com/cosmtrek/air@latest
 CMD ["air"]
-
-### 本番用ステージ ###
-FROM alpine:latest as production
-WORKDIR /root/
-COPY --from=builder /app/main .
-CMD ["./main"]
