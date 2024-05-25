@@ -10,8 +10,3 @@ terraform import module.tf_backend.aws_s3_bucket_server_side_encryption_configur
 terraform import module.tf_backend.aws_s3_bucket_versioning.tfstate_s3_versioning learn-terraform-tfstate-prod
 
 aws s3 cp s3://learn-terraform-tfstate-prod/terraform.tfstate .
-
-# 手動構築したAWSサービス
-- Route53
-- ACM
-- SecretsManager
