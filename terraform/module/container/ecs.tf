@@ -52,7 +52,7 @@ resource "aws_ecs_service" "ecs_service" {
   desired_count = 0
 
   network_configuration {
-    subnets          = local.selected_public_subnet_ids
+    subnets          = [var.private_subnet_c_ids, var.private_subnet_d_ids]
     security_groups  = [aws_security_group.ecs_sg.id]
     assign_public_ip = true
   }
@@ -62,11 +62,11 @@ resource "aws_ecs_service" "ecs_service" {
     rollback = true
   }
 
-  load_balancer {
-    target_group_arn = aws_lb_target_group.ecs_tg.arn
-    container_name   = "${var.pj}-container-${var.env}"
-    container_port   = 8080
-  }
+  # load_balancer {
+  #   target_group_arn = aws_lb_target_group.ecs_tg.arn
+  #   container_name   = "${var.pj}-container-${var.env}"
+  #   container_port   = 8080
+  # }
 }
 
 resource "aws_security_group" "ecs_sg" {
@@ -78,19 +78,22 @@ resource "aws_security_group" "ecs_sg" {
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
+    # security_groups = [aws_security_group.alb_sg.id]
+    cidr_blocks     = ["0.0.0.0/0"]
   }
   ingress {
     from_port       = 8080
     to_port         = 8080
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
+    # security_groups = [aws_security_group.alb_sg.id]
+    cidr_blocks     = ["0.0.0.0/0"]
   }
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
+    # security_groups = [aws_security_group.alb_sg.id]
+    cidr_blocks     = ["0.0.0.0/0"]
   }
 
   egress {

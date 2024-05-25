@@ -25,13 +25,13 @@ output "ecs_sg_id" {
   value       = aws_security_group.ecs_sg.id
 }
 
-## ALB
-output "alb_dns" {
-  description = "ALB DNS"
-  value       = aws_lb.ecs_alb.dns_name
-}
+# ## ALB
+# output "alb_dns" {
+#   description = "ALB DNS"
+#   value       = aws_lb.ecs_alb.dns_name
+# }
 
-output "alb_id" {
-  description = "ALB Id"
-  value       = aws_lb.ecs_alb.zone_id
-}
+# output "alb_id" {
+#   description = "ALB Id"
+#   value       = aws_lb.ecs_alb.zone_id
+# }
