@@ -23,8 +23,7 @@ resource "aws_rds_cluster" "aurora_cluster" {
 
   serverlessv2_scaling_configuration {
     min_capacity = 0.5
-    max_capacity = 1.0
-  }
+    max_capacity = 2.0
 
   tags = {
     Name = local.aurora_cluster_name[var.env]
