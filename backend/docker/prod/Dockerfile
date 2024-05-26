@@ -4,14 +4,14 @@ FROM golang:1.22-alpine as builder
 WORKDIR /app
 
 # 必要なファイルをコピー
-COPY go.mod ./
-COPY go.sum ./
+COPY backend/go.mod ./
+COPY backend/go.sum ./
 
 # 依存関係をダウンロード
 RUN go mod download
 
 # プロジェクト全体をコピー
-COPY . .
+COPY backend/. .
 
 # CGoを無効化してビルド
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o main .

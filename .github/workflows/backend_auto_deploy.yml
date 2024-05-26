@@ -79,7 +79,7 @@ jobs:
 
       # /tmp/.buildx-cache: Docker Buildxのキャッシュを作成
       - name: Build Image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: backend/docker/${{ env.ENV_VAR }}/Dockerfile 
