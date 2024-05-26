@@ -41,7 +41,7 @@ resource "aws_ecs_task_definition" "task_definition" {
 
 ### ECS Service ###
 resource "aws_ecs_service" "ecs_service" {
-  name            = "${var.pj}-service-${var.env}"
+  name            = "${var.pj}-ecs-service-${var.env}"
   cluster         = aws_ecs_cluster.ecs_cluster.id
   task_definition = aws_ecs_task_definition.task_definition.arn
   launch_type     = "FARGATE"

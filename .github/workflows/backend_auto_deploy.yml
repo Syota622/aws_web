@@ -127,8 +127,8 @@ jobs:
       # ECSへのデプロイ
       - name: Deploy to ECS
         run: |
-          export ECS_CLUSTER="${{ env.PROJECT }}-ecs-cluster-$ENV_VAR"
-          export ECS_SERVICE="${{ env.PROJECT }}-service-$ENV_VAR"
+          export ECS_CLUSTER="${{ env.PROJECT }}-ecs-cluster-${{ env.ENV_VAR }}"
+          export ECS_SERVICE="${{ env.PROJECT }}-ecs-service-${{ env.ENV_VAR }}"
           echo "ECS_CLUSTER: $ECS_CLUSTER"
           echo "ECS_SERVICE: $ECS_SERVICE"
           aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
