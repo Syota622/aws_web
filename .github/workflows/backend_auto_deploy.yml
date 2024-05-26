@@ -21,15 +21,14 @@ jobs:
   setup:
     runs-on: ubuntu-22.04
     environment: 
-      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || '' }}
+      name: ${{ env.ENV_VAR }}
     steps:
-      
         - name: Checkout Code
           uses: actions/checkout@v4
 
         - name: env Confirmation
           run: |
-            echo "ENV: ${{ env.ENV_VAR }}"
+            echo "ENV_VAR: ${{ env.ENV_VAR }}"
             echo "AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}"
             echo "PROJECT: ${{ env.PROJECT }}"
             echo "AWS_REGION: ${{ env.AWS_REGION }}"
@@ -37,7 +36,6 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -88,7 +86,6 @@ jobs:
 
     runs-on: ubuntu-22.04
     steps:
-
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -118,7 +115,6 @@ jobs:
 
     runs-on: ubuntu-22.04
     steps:
-
       - name: Checkout Code
         uses: actions/checkout@v4
 
