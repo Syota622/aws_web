@@ -2,8 +2,9 @@
 FROM golang:1.22-alpine as builder
 
 WORKDIR /app
-COPY go.mod ./
-COPY go.sum ./
+COPY . .
+# COPY go.mod ./
+# COPY go.sum ./
 RUN go mod download
 
 # プロジェクト全体をコピー
