@@ -106,7 +106,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: $AWS_REGION
+          aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::$AWS_ACCOUNT_ID:role/${{ env.PROJECT }}-github-actions-role
           role-session-name: ${{ env.PROJECT }}-github-actions
 
@@ -116,8 +116,8 @@ jobs:
       - name: Push image to ECR
         run: |
           docker load --input /tmp/${{ env.PROJECT }}_image.tar
-          docker tag ${{ env.PROJECT }}_image:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${{ env.PROJECT }}-private-repository:latest
-          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${{ env.PROJECT }}-private-repository:latest
+          docker tag ${{ env.PROJECT }}_image:latest $AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository:latest
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository:latest
 
   deploy:
     needs: push
@@ -131,7 +131,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: $AWS_REGION
+          aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::$AWS_ACCOUNT_ID:role/${{ env.PROJECT }}-github-actions-role
           role-session-name: ${{ env.PROJECT }}-github-actions
 
