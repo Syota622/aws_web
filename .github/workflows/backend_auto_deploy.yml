@@ -21,7 +21,7 @@ jobs:
   setup:
     runs-on: ubuntu-22.04
     environment: 
-      name: ${{ env.ENV_VAR }}
+      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || '' }}
     steps:
         - name: Checkout Code
           uses: actions/checkout@v4
@@ -35,6 +35,8 @@ jobs:
  
   build:
     runs-on: ubuntu-22.04
+    environment: 
+      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || '' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -83,8 +85,9 @@ jobs:
 
   push:
     needs: build
-
     runs-on: ubuntu-22.04
+    environment: 
+      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || '' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -112,8 +115,9 @@ jobs:
 
   deploy:
     needs: push
-
     runs-on: ubuntu-22.04
+    environment: 
+      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || '' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
