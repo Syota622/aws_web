@@ -20,7 +20,8 @@ env:
 jobs:
   setup:
     runs-on: ubuntu-22.04
-    environment: ${{ env.ENV_VAR }}
+    environment: 
+      name: ${{ env.ENV_VAR }}
     steps:
       
         - name: Checkout Code
