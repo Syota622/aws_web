@@ -36,20 +36,20 @@ jobs:
         with:
           platforms: arm64
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
 
-      - name: Create Go modules cache
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+      # - name: Create Go modules cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: /home/runner/go/pkg/mod
+      #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
-      - name: Create go-build and cache
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/.cache/go-build
-          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+      # - name: Create go-build and cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: /home/runner/.cache/go-build
+      #     key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
 
       - name: Build Image
         uses: docker/build-push-action@v5
@@ -57,12 +57,14 @@ jobs:
           context: .
           file: backend/docker/$ENV_VAR/Dockerfile 
           platforms: linux/arm64
-          tags: $PROJECT_image:latest
-          outputs: type=docker,dest=/tmp/$PROJECT_image.tar
+          tags: ${{ env.PROJECT }}_image:latest
+          outputs: type=docker,dest=/tmp/${{ env.PROJECT }}_image.tar
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   push:
+    needs: build
+
     runs-on: ubuntu-22.04
     steps:
 
@@ -78,19 +80,21 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: $AWS_REGION
-          role-to-assume: arn:aws:iam::$AWS_ACCOUNT_ID:role/$PROJECT-github-actions-role
-          role-session-name: $PROJECT-github-actions
+          role-to-assume: arn:aws:iam::$AWS_ACCOUNT_ID:role/${{ env.PROJECT }}-github-actions-role
+          role-session-name: ${{ env.PROJECT }}-github-actions
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Push image to ECR
         run: |
-          docker load --input /tmp/$PROJECT_image.tar
-          docker tag $PROJECT_image:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT-private-repository:latest
-          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$PROJECT-private-repository:latest
+          docker load --input /tmp/${{ env.PROJECT }}_image.tar
+          docker tag ${{ env.PROJECT }}_image:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${{ env.PROJECT }}-private-repository:latest
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${{ env.PROJECT }}-private-repository:latest
 
   deploy:
+    needs: push
+
     runs-on: ubuntu-22.04
     steps:
 
@@ -100,8 +104,8 @@ jobs:
       - name: Deploy to ECS
         run: |
           echo "ENV: ${{ env.ENV_VAR }}"
-          export ECS_CLUSTER="$PROJECT-ecs-cluster-$ENV_VAR"
-          export ECS_SERVICE="$PROJECT-service-$ENV_VAR"
+          export ECS_CLUSTER="${{ env.PROJECT }}-ecs-cluster-$ENV_VAR"
+          export ECS_SERVICE="${{ env.PROJECT }}-service-$ENV_VAR"
           echo "ECS_CLUSTER: $ECS_CLUSTER"
           echo "ECS_SERVICE: $ECS_SERVICE"
           aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
