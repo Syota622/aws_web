@@ -105,7 +105,7 @@ jobs:
       - name: Push image to ECR
         run: |
           docker load --input /tmp/${{ env.PROJECT }}_image.tar
-          docker tag ${{ env.PROJECT }}_image:latest ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository:latest
+          docker tag ${{ env.PROJECT }}_image:latest ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository-${{ env.ENV_VAR }}:latest
           docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository-${{ env.ENV_VAR }}:latest
 
   deploy:
