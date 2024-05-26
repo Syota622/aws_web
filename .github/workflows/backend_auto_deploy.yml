@@ -89,14 +89,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU for arm64
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
+      # iam roleを利用してECRにログインし、イメージをプッシュする
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -104,9 +97,11 @@ jobs:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.PROJECT }}-github-actions-role
           role-session-name: ${{ env.PROJECT }}-github-actions
 
+      # ECRへの認証を行う
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
+      # イメージをECRにプッシュする
       - name: Push image to ECR
         run: |
           docker load --input /tmp/${{ env.PROJECT }}_image.tar
@@ -129,6 +124,7 @@ jobs:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.PROJECT }}-github-actions-role
           role-session-name: ${{ env.PROJECT }}-github-actions
 
+      # ECSへのデプロイ
       - name: Deploy to ECS
         run: |
           export ECS_CLUSTER="${{ env.PROJECT }}-ecs-cluster-$ENV_VAR"
