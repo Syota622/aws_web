@@ -21,7 +21,7 @@ jobs:
   setup:
     runs-on: ubuntu-22.04
     environment: 
-      name: ${{ env.ENV_VAR }}
+      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || '' }}
     steps:
       
         - name: Checkout Code
