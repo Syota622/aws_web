@@ -18,6 +18,20 @@ env:
   AWS_REGION: ap-northeast-1
 
 jobs:
+  setup:
+    runs-on: ubuntu-22.04
+    steps:
+      
+        - name: Checkout Code
+          uses: actions/checkout@v4
+
+        - name: env Confirmation
+          run: |
+            echo "ENV: ${{ env.ENV_VAR }}"
+            echo "AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}"
+            echo "PROJECT: ${{ env.PROJECT }}"
+            echo "AWS_REGION: ${{ env.AWS_REGION }}"
+ 
   build:
     runs-on: ubuntu-22.04
     steps:
