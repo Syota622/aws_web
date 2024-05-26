@@ -63,11 +63,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # - name: Create Go modules cache
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: /home/runner/go/pkg/mod
-      #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+      - name: Create Go modules cache
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       # - name: Create go-build and cache
       #   uses: actions/cache@v4
