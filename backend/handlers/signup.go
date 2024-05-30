@@ -13,6 +13,7 @@ import (
 func SignUpHandler(c *gin.Context, db *gorm.DB) {
 	var user models.User
 
+	// c.ShouldBindJSON(&user)とは、リクエストボディをJSON形式で受け取り、User構造体にバインドするメソッド
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
