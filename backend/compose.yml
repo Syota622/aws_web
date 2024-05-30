@@ -18,33 +18,20 @@ services:
       # - redis
 
   db:
-    image: postgres:14
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: myapp
+    ports:
+      - "3306:3306"
     volumes:
-      - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Passw0rd
-      POSTGRES_DB: db
-      TZ: Asia/Tokyo
+      - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"] # PostgreSQLが準備完了しているかチェック
-      interval: 10s # チェックのインターバル
-      timeout: 5s # チェックのタイムアウト
-      retries: 5 # リトライの回数
-      start_period: 10s # コンテナ起動後、ヘルスチェックを開始するまでの時間
-
-  pgadmin4:
-    image: dpage/pgadmin4
-    ports:
-      - "5050:80" # pgAdmin4のWeb UIをポート5050にマップ
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: adminpassword
-    depends_on:
-      - db
-    restart: on-failure
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   mailcatcher:
     image: schickling/mailcatcher
