@@ -10,6 +10,8 @@ services:
     volumes:
       - .:/app
       - go_cache:/root/.cache/go-build # go buildのキャッシュを永続化
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy # dbサービスが「healthy」（健全）状態になるまで起動
