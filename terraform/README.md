@@ -8,5 +8,3 @@ terraform import module.tf_backend.aws_s3_bucket_ownership_controls.tfstate_s3_a
 terraform import module.tf_backend.aws_s3_bucket_public_access_block.tfstate_s3_private learn-terraform-tfstate-prod
 terraform import module.tf_backend.aws_s3_bucket_server_side_encryption_configuration.tfstate_s3_encryption learn-terraform-tfstate-prod
 terraform import module.tf_backend.aws_s3_bucket_versioning.tfstate_s3_versioning learn-terraform-tfstate-prod
-
-aws s3 cp s3://learn-terraform-tfstate-prod/terraform.tfstate .
