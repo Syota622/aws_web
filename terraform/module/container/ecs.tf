@@ -27,7 +27,7 @@ resource "aws_ecs_task_definition" "task_definition" {
   }
 
   container_definitions = jsonencode([{
-    name  = "${var.pj}-container-${var.env}",
+    name = "${var.pj}-container-${var.env}",
     # ECRのイメージを指定
     image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-private-repository-${var.env}:latest",
     portMappings = [{
@@ -43,28 +43,28 @@ resource "aws_ecs_task_definition" "task_definition" {
         awslogs-stream-prefix = "ecs"
       }
     },
-    # 環境変数の設定
+    # 環境変数の設定（SecretsManager）
     secrets = [
-    {
-      name      = "DB_USER",
-      valueFrom = var.secrets_manager_arn
-    },
-    {
-      name      = "DB_PASSWORD",
-      valueFrom = var.secrets_manager_arn
-    },
-    {
-      name      = "DB_NAME",
-      valueFrom = var.secrets_manager_arn
-    },
-    {
-      name      = "DB_PORT",
-      valueFrom = var.secrets_manager_arn
-    },
-    {
-      name      = "DB_HOST",
-      valueFrom = var.secrets_manager_arn
-    }
+      {
+        name      = "DB_USER",
+        valueFrom = var.secrets_manager_arn
+      },
+      {
+        name      = "DB_PASSWORD",
+        valueFrom = var.secrets_manager_arn
+      },
+      {
+        name      = "DB_NAME",
+        valueFrom = var.secrets_manager_arn
+      },
+      {
+        name      = "DB_PORT",
+        valueFrom = var.secrets_manager_arn
+      },
+      {
+        name      = "DB_HOST",
+        valueFrom = var.secrets_manager_arn
+      }
     ]
   }])
 }

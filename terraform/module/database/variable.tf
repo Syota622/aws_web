@@ -21,16 +21,16 @@ locals {
     prod = 30
   }
   preferred_backup_window = {
-    dev = "18:15-19:15" # jst：03:15~04:15
+    dev  = "18:15-19:15" # jst：03:15~04:15
     prod = "18:15-19:15" # jst：03:15~04:15
   }
   preferred_maintenance_window = {
-    dev = "mon:19:25-mon:20:25" # jst：Tuesday(04:25~05:25)
+    dev  = "mon:19:25-mon:20:25" # jst：Tuesday(04:25~05:25)
     prod = "mon:19:25-mon:20:25" # jst：Tuesday(04:25~05:25)
   }
   skip_final_snapshot = {
     dev  = true
-    prod  = true
+    prod = true
   }
 }
 

@@ -1,6 +1,6 @@
 ### Aurora Database ###
 resource "aws_rds_cluster" "aurora_cluster" {
-  depends_on                      = [aws_secretsmanager_secret.db_credentials]
+  depends_on = [aws_secretsmanager_secret.db_credentials]
 
   cluster_identifier              = local.aurora_cluster_name[var.env]
   engine                          = "aurora-mysql"

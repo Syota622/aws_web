@@ -25,7 +25,7 @@ resource "aws_s3_bucket_versioning" "tfstate_s3_versioning" {
 # encrypt
 resource "aws_s3_bucket_server_side_encryption_configuration" "tfstate_s3_encryption" {
   bucket = aws_s3_bucket.terraform_tfstate_s3.id
-  
+
   rule {
     bucket_key_enabled = true
     apply_server_side_encryption_by_default {
