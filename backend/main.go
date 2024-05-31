@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-
 	// 環境変数からデータベース接続情報を取得
 	dsn := os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") + "@tcp(" + os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT") + ")/" + os.Getenv("DB_NAME") + "?charset=utf8mb4&parseTime=True&loc=Local"
 
@@ -29,7 +28,12 @@ func main() {
 	// Ginのルーターを作成
 	r := gin.Default()
 
-	// ハンドラにデータベース接続を渡す
+	// ルートハンドラを追加
+	r.GET("/", func(c *gin.Context) {
+		c.String(200, "Hello, World!")
+	})
+
+	// サインアップハンドラにデータベース接続を渡す
 	r.POST("/signup", func(c *gin.Context) {
 		handlers.SignUpHandler(c, db)
 	})
