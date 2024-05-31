@@ -32,9 +32,6 @@ func main() {
 		log.Fatalf("Failed to parse DB config JSON: %v", err)
 	}
 
-	// デバッグ用にパース結果をログに出力
-	log.Printf("Parsed DB Config: %+v", dbConfig)
-
 	// DSN (Data Source Name) 文字列の生成
 	dsn := dbConfig.DBUser + ":" + dbConfig.DBPassword + "@tcp(" + dbConfig.DBHost + ":" + dbConfig.DBPort + ")/" + dbConfig.DBName + "?charset=utf8mb4&parseTime=True&loc=Local"
 
