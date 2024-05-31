@@ -28,7 +28,7 @@ resource "aws_ecs_task_definition" "task_definition" {
 
   container_definitions = jsonencode([{
     name  = "${var.pj}-container-${var.env}",
-    image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-private-repository:latest",
+    image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-private-repository-${var.env}:latest",
     portMappings = [{
       containerPort = 8080,
       hostPort      = 8080
