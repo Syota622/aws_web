@@ -33,3 +33,10 @@ module "container" {
   public_subnet_c_ids = module.network.public_c_subnet_ids
   public_subnet_d_ids = module.network.public_d_subnet_ids
 }
+
+## domain ###
+module "domain" {
+  source = "../../module/domain"
+  pj     = var.pj
+  env    = var.env
+}
