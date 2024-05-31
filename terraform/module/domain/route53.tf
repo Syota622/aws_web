@@ -1,3 +1,6 @@
+### マルチアカウントでドメインを利用する場合、権限を委譲する必要がある ###
+# 参考: https://dev.classmethod.jp/articles/route53-transfer-hostedzones-2021/
+
 ### Route53 host zone ###
 resource "aws_route53_zone" "learn_com" {
   name = "mokokero.com"
