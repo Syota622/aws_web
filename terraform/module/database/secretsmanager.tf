@@ -1,3 +1,4 @@
+# AuroraのパスワードをSecretsManagerに保存する
 resource "random_password" "password" {
   length           = 16  # パスワードの長さ
   special          = false  # 特殊文字を含むかどうか
