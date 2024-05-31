@@ -28,11 +28,13 @@ resource "aws_ecs_task_definition" "task_definition" {
 
   container_definitions = jsonencode([{
     name  = "${var.pj}-container-${var.env}",
+    # ECRのイメージを指定
     image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-private-repository-${var.env}:latest",
     portMappings = [{
       containerPort = 8080,
       hostPort      = 8080
     }]
+    # ログの設定
     logConfiguration = {
       logDriver = "awslogs"
       options = {
@@ -40,7 +42,30 @@ resource "aws_ecs_task_definition" "task_definition" {
         awslogs-region        = "ap-northeast-1"
         awslogs-stream-prefix = "ecs"
       }
+    },
+    # 環境変数の設定
+    secrets = [
+    {
+      name      = "DB_USER",
+      valueFrom = var.secrets_manager_arn
+    },
+    {
+      name      = "DB_PASSWORD",
+      valueFrom = var.secrets_manager_arn
+    },
+    {
+      name      = "DB_NAME",
+      valueFrom = var.secrets_manager_arn
+    },
+    {
+      name      = "DB_PORT",
+      valueFrom = var.secrets_manager_arn
+    },
+    {
+      name      = "DB_HOST",
+      valueFrom = var.secrets_manager_arn
     }
+    ]
   }])
 }
 

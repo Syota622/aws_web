@@ -11,8 +11,10 @@ resource "aws_secretsmanager_secret" "db_credentials" {
 resource "aws_secretsmanager_secret_version" "db_credentials" {
   secret_id     = aws_secretsmanager_secret.db_credentials.id
   secret_string = jsonencode({
-    username = "mysql_user"
-    password = random_password.password.result
-    database = "db"
+    DB_USER = "mysql_user"
+    DB_PASSWORD = random_password.password.result
+    DB_NAME = "db"
+    DB_PORT = "3306"
+    DB_HOST = aws_rds_cluster.aurora_cluster.endpoint
   })
 }

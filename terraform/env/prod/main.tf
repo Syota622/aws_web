@@ -40,6 +40,9 @@ module "container" {
 
   # domain
   acm_certificate = module.domain.acm_certificate
+
+  # database
+  secrets_manager_arn = module.database.secrets_manager_arn
 }
 
 ## domain ###
