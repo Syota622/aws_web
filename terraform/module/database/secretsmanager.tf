@@ -1,7 +1,6 @@
 resource "random_password" "password" {
   length           = 16  # パスワードの長さ
-  special          = true  # 特殊文字を含むかどうか
-  override_special = "_%@"
+  special          = false  # 特殊文字を含むかどうか
 }
 
 resource "aws_secretsmanager_secret" "db_credentials" {

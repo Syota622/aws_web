@@ -1,5 +1,6 @@
 ### Aurora Database ###
 resource "aws_rds_cluster" "aurora_cluster" {
+  depends_on                      = [aws_secretsmanager_secret.db_credentials]
 
   cluster_identifier              = local.aurora_cluster_name[var.env]
   engine                          = "aurora-mysql"
@@ -24,13 +25,10 @@ resource "aws_rds_cluster" "aurora_cluster" {
   serverlessv2_scaling_configuration {
     min_capacity = 0.5
     max_capacity = 2.0
+  }
 
   tags = {
     Name = local.aurora_cluster_name[var.env]
-  }
-
-  lifecycle {
-    prevent_destroy = false
   }
 
 }
@@ -46,10 +44,6 @@ resource "aws_rds_cluster_instance" "aurora_serverless" {
   publicly_accessible = false
   apply_immediately   = true
 
-  lifecycle {
-    prevent_destroy = false
-  }
-
 }
 
 # Aurora SecurityGroup
@@ -62,6 +56,7 @@ resource "aws_security_group" "aurora_cluster" {
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
+    security_groups = [var.ecs_sg_id]
   }
 
   egress {
