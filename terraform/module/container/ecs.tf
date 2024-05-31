@@ -46,23 +46,7 @@ resource "aws_ecs_task_definition" "task_definition" {
     # 環境変数の設定（SecretsManager）
     secrets = [
       {
-        name      = "DB_USER",
-        valueFrom = var.secrets_manager_arn
-      },
-      {
-        name      = "DB_PASSWORD",
-        valueFrom = var.secrets_manager_arn
-      },
-      {
-        name      = "DB_NAME",
-        valueFrom = var.secrets_manager_arn
-      },
-      {
-        name      = "DB_PORT",
-        valueFrom = var.secrets_manager_arn
-      },
-      {
-        name      = "DB_HOST",
+        name      = "DB_CONFIG",
         valueFrom = var.secrets_manager_arn
       }
     ]

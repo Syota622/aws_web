@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 
@@ -12,27 +13,35 @@ import (
 	"golang/models"
 )
 
-func main() {
-	// 環境変数の読み込み
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
+// DBConfig はデータベース接続情報を保持する構造体です
+type DBConfig struct {
+	DBHost     string `json:"DB_HOST"`
+	DBName     string `json:"DB_NAME"`
+	DBPassword string `json:"DB_PASSWORD"`
+	DBPort     string `json:"DB_PORT"`
+	DBUser     string `json:"DB_USER"`
+}
 
-	// デバッグ用に環境変数をログに出力
-	log.Printf("DB_USER: %s, DB_PASSWORD: %s, DB_HOST: %s, DB_PORT: %s, DB_NAME: %s", dbUser, dbPassword, dbHost, dbPort, dbName)
+func main() {
+	// 環境変数からJSON文字列を取得
+	dbConfigJSON := os.Getenv("DB_CONFIG")
+
+	// JSON文字列をDBConfig構造体にパース
+	var dbConfig DBConfig
+	if err := json.Unmarshal([]byte(dbConfigJSON), &dbConfig); err != nil {
+		log.Fatalf("Failed to parse DB config JSON: %v", err)
+	}
+
+	// デバッグ用にパース結果をログに出力
+	log.Printf("Parsed DB Config: %+v", dbConfig)
 
 	// DSN (Data Source Name) 文字列の生成
-	dsn := dbUser + ":" + dbPassword + "@tcp(" + dbHost + ":" + dbPort + ")/" + dbName + "?charset=utf8mb4&parseTime=True&loc=Local"
-
-	// // 環境変数からデータベース接続情報を取得
-	// dsn := os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") + "@tcp(" + os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT") + ")/" + os.Getenv("DB_NAME") + "?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := dbConfig.DBUser + ":" + dbConfig.DBPassword + "@tcp(" + dbConfig.DBHost + ":" + dbConfig.DBPort + ")/" + dbConfig.DBName + "?charset=utf8mb4&parseTime=True&loc=Local"
 
 	// データベースに接続
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
 	// ユーザーモデルをマイグレーション
