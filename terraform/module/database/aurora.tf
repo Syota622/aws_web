@@ -6,8 +6,8 @@ resource "aws_rds_cluster" "aurora_cluster" {
   engine                          = "aurora-mysql"
   engine_version                  = "8.0.mysql_aurora.3.06.0"
   database_name                   = local.credentials["DB_NAME"]
-  master_username                 = local.credentials["DB_PASSWORD"]
-  master_password                 = local.credentials["DB_USER"]
+  master_username                 = local.credentials["DB_USER"]
+  master_password                 = local.credentials["DB_PASSWORD"]
   backup_retention_period         = local.backup_retention_period[var.env]
   preferred_backup_window         = local.preferred_backup_window[var.env]
   preferred_maintenance_window    = local.preferred_maintenance_window[var.env]
