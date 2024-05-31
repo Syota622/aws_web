@@ -118,6 +118,10 @@ resource "aws_security_group" "ecs_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "${var.pj}-ecs-service-sg-${var.env}"
+  }
 }
 
 resource "aws_cloudwatch_log_group" "ecs_logs" {
