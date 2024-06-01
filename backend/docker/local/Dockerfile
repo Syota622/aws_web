@@ -26,7 +26,7 @@ WORKDIR /app
 COPY --from=builder /app/main .
 
 # 環境変数を読み込んでMySQLに接続するスクリプトを追加
-COPY backend/connect_to_mysql.sh /app/connect_to_mysql.sh
+COPY connect_to_mysql.sh /app/connect_to_mysql.sh
 RUN chmod +x /app/connect_to_mysql.sh
 
 # airのインストール
