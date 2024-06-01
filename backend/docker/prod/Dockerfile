@@ -28,7 +28,7 @@ WORKDIR /app
 COPY --from=builder /app/main .
 
 # 環境変数を読み込んでMySQLに接続するスクリプトを追加
-COPY connect_to_mysql.sh /usr/local/bin/connect_to_mysql.sh
-RUN chmod +x /usr/local/bin/connect_to_mysql.sh
+COPY backend/connect_to_mysql.sh /app/connect_to_mysql.sh
+RUN chmod +x /app/connect_to_mysql.sh
 
 CMD ["./main"]
