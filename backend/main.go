@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -53,8 +54,21 @@ func main() {
 		c.String(200, "Hello, World!")
 	})
 
-	// サインアップハンドラにデータベース接続を渡す
-	r.POST("/signup", func(c *gin.Context) {
+	// カスタムヘッダーをチェックするミドルウェア
+	authMiddleware := func(c *gin.Context) {
+		customHeader := c.GetHeader("X-Custom-Header")
+		// 仮で設定したシークレット値と一致しない場合は403を返す。後ほど環境変数に置き換える
+		if customHeader != "YourSecretValue" {
+			c.AbortWithStatus(http.StatusForbidden)
+			return
+		}
+		c.Next()
+	}
+
+	// /signupルートにのみミドルウェアを適用
+	signupGroup := r.Group("/")
+	signupGroup.Use(authMiddleware)
+	signupGroup.POST("/signup", func(c *gin.Context) {
 		handlers.SignUpHandler(c, db)
 	})
 
