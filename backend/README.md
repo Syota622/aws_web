@@ -7,16 +7,18 @@ go get github.com/joho/godotenv
 
 # docker compose
 docker-compose up --build
+docker compose exec web sh
 docker compose exec db mysql -u root -D myapp -ppassword
 
 # Curl
 ```sh
 curl -X POST http://localhost:8080/signup \
     -H "Content-Type: application/json" \
+    -H "X-Custom-Header: YourSecretValue" \
     -d '{
-        "username": "testuser",
-        "password": "password123",
-        "email": "testuser@example.com"
+        "username": "testuser1",
+        "password": "password1",
+        "email": "testuser1@example.com"
     }'
 curl -X POST https://api.mokokero.com/signup \
     -H "Content-Type: application/json" \
