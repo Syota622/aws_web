@@ -8,3 +8,6 @@ terraform import module.tf_backend.aws_s3_bucket_ownership_controls.tfstate_s3_a
 terraform import module.tf_backend.aws_s3_bucket_public_access_block.tfstate_s3_private learn-terraform-tfstate-prod
 terraform import module.tf_backend.aws_s3_bucket_server_side_encryption_configuration.tfstate_s3_encryption learn-terraform-tfstate-prod
 terraform import module.tf_backend.aws_s3_bucket_versioning.tfstate_s3_versioning learn-terraform-tfstate-prod
+
+# ローカルからECSへのログイン方法（ECS Exec）
+aws ecs execute-command --cluster learn-ecs-cluster-prod --task 430625c037df4b02a08544097ef7a4bd --container learn-container-prod --interactive --command "sh"
