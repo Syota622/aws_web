@@ -24,6 +24,7 @@ type DBConfig struct {
 
 func main() {
 	// 環境変数からJSON文字列を取得
+	// DB_CONFIG={"DB_HOST":"1","DB_NAME":"2","DB_PASSWORD":"3","DB_PORT":"4","DB_USER":"5"}
 	dbConfigJSON := os.Getenv("DB_CONFIG")
 
 	// JSON文字列をDBConfig構造体にパース

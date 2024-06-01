@@ -18,4 +18,11 @@ curl -X POST http://localhost:8080/signup \
         "password": "password123",
         "email": "testuser@example.com"
     }'
+curl -X POST http://api.mokokero.com/signup \
+    -H "Content-Type: application/json" \
+    -d '{
+        "username": "testuser",
+        "password": "password123",
+        "email": "testuser@example.com"
+    }'
 ```

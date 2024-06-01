@@ -15,8 +15,9 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o main .
 ### 開発用ステージ ###
 FROM golang:1.22-alpine as development
 
-# アップデートとvim,git, mysql-clientのインストール
-RUN apk update && apk add vim git mysql-client
+# バッケージのインストール
+RUN apk update
+RUN apk add vim git mysql-client jq
 
 # /appに移動
 WORKDIR /app

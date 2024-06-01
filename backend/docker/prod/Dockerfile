@@ -19,8 +19,9 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o main .
 ### 本番用ステージ ###
 FROM alpine:3.19.1 as production
 
-# アップデートとvim,git, mysql-clientのインストール
-RUN apk update && apk add vim git mysql-client
+# バッケージのインストール
+RUN apk update
+RUN apk add vim git mysql-client jq
 
 WORKDIR /app
 
