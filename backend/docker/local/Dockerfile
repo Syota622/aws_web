@@ -30,5 +30,5 @@ COPY connect_to_mysql.sh /app/connect_to_mysql.sh
 RUN chmod +x /app/connect_to_mysql.sh
 
 # airのインストール
-RUN go install github.com/cosmtrek/air@latest
+RUN go install github.com/air-verse/air@latest
 CMD ["air"]
