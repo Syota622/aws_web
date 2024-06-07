@@ -27,7 +27,7 @@ resource "aws_ecr_lifecycle_policy" "private_repository_policy" {
         "tagStatus": "any",
         "countType": "sinceImagePushed",
         "countUnit": "days",
-        "countNumber": 1
+        "countNumber": 10
       },
       "action": {
         "type": "expire"
