@@ -80,7 +80,7 @@ data "archive_file" "lambda_zip" {
 # Lambda function
 resource "aws_lambda_function" "signup_lambda" {
   filename         = data.archive_file.lambda_zip.output_path
-  function_name    = "SignupFunction"
+  function_name    = "${var.pj}-user-signup-lambda-${var.env}"
   role             = aws_iam_role.user_signup_lambda_role.arn
   handler          = "learn_user_ref.handler"
   runtime          = "nodejs20.x"
