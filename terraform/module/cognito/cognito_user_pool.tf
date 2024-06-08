@@ -1,3 +1,4 @@
+### Cognito ###
 # Cognito User Pool
 resource "aws_cognito_user_pool" "user_pool" {
   name  = "${var.pj}-user-pool-${var.env}"
@@ -27,3 +28,5 @@ resource "aws_cognito_user_pool_domain" "user_pool_domain" {
   domain       = "${var.pj}-user-pool-domain-${var.env}"
   user_pool_id = aws_cognito_user_pool.user_pool.id
 }
+
+### Lambda ###
