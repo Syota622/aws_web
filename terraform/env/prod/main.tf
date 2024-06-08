@@ -55,3 +55,10 @@ module "domain" {
   alb_dns     = module.container.alb_dns
   alb_zone_id = module.container.alb_zone_id
 }
+
+## cognito ###
+module "cognito" {
+  source = "../../module/cognito"
+  pj     = var.pj
+  env    = var.env
+}
