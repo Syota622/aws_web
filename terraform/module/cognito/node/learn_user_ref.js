@@ -10,7 +10,7 @@ exports.handler = async (event, context) => {
     });
 
     const options = {
-        hostname: 'mokokero.com',
+        hostname: 'api.mokokero.com',
         port: 443,
         path: '/signup',
         method: 'POST',
