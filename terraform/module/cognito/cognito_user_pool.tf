@@ -84,6 +84,7 @@ resource "aws_lambda_function" "signup_lambda" {
   role             = aws_iam_role.user_signup_lambda_role.arn
   handler          = "learn_user_ref.handler"
   runtime          = "nodejs20.x"
+  timeout          = 60
   source_code_hash = filebase64sha256(data.archive_file.lambda_zip.output_path)
 }
 
