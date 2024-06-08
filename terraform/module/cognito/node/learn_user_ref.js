@@ -1,10 +1,11 @@
 const https = require('https');
 
 exports.handler = async (event) => {
+    console.log('event', event);
     const data = JSON.stringify({
-        username: event.username,
-        password: event.password,
-        email: event.email
+        username: event.request.userAttributes.email,
+        password: event.request.userAttributes.password,
+        email: event.request.userAttributes.email
     });
 
     const options = {

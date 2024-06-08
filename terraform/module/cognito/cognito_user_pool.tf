@@ -3,9 +3,9 @@
 resource "aws_cognito_user_pool" "user_pool" {
   name  = "${var.pj}-user-pool-${var.env}"
 
-  # lambda_config {
-  #   pre_sign_up = "lambda.arn"
-  # }
+  lambda_config {
+    pre_sign_up = aws_lambda_function.signup_lambda.arn
+  }
 
 }
 
@@ -30,3 +30,68 @@ resource "aws_cognito_user_pool_domain" "user_pool_domain" {
 }
 
 ### Lambda ###
+# IAM role
+resource "aws_iam_role" "user_signup_lambda_role" {
+  name  = "${var.pj}-user-signup-lambda-role-${var.env}"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+        Action = [
+          "sts:AssumeRole"
+        ]
+      }
+    ]
+  })
+}
+
+# IAM Policy
+resource "aws_iam_role_policy" "user_signup_lambda_policy" {
+  name  = "${var.pj}-user-signup-lambda-policy-${var.env}"
+  role  = aws_iam_role.user_signup_lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# source code
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  source_file = "${path.module}/node/learn_user_ref.js"
+  output_path = "${path.module}/node/learn_user_ref.zip"
+}
+
+# Lambda function
+resource "aws_lambda_function" "signup_lambda" {
+  filename         = data.archive_file.lambda_zip.output_path
+  function_name    = "SignupFunction"
+  role             = aws_iam_role.user_signup_lambda_role.arn
+  handler          = "learn_user_ref.handler"
+  runtime          = "nodejs20.x"
+  source_code_hash = filebase64sha256(data.archive_file.lambda_zip.output_path)
+}
+
+# Lambda permission
+resource "aws_lambda_permission" "allow_cognito_invoke" {
+  statement_id  = "AllowCognitoInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.signup_lambda.function_name
+  principal     = "cognito-idp.amazonaws.com"
+  source_arn    = aws_cognito_user_pool.user_pool.arn
+}
