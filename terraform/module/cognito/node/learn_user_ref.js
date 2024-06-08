@@ -15,7 +15,8 @@ exports.handler = async (event) => {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Content-Length': data.length
+            'Content-Length': data.length,
+            'X-Custom-Header': 'YourSecretValue'
         }
     };
 
