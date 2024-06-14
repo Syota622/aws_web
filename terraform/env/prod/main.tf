@@ -23,13 +23,13 @@ module "database" {
   private_subnet_c_ids = module.network.private_c_subnet_ids
   private_subnet_d_ids = module.network.private_d_subnet_ids
 
-  # container
-  ecs_sg_id = module.container.ecs_sg_id
+  # backend
+  ecs_sg_id = module.backend.ecs_sg_id
 }
 
-## container ###
-module "container" {
-  source = "../../module/container"
+## backend ###
+module "backend" {
+  source = "../../module/backend"
   pj     = var.pj
   env    = var.env
 
@@ -51,9 +51,9 @@ module "domain" {
   pj     = var.pj
   env    = var.env
 
-  # container
-  alb_dns     = module.container.alb_dns
-  alb_zone_id = module.container.alb_zone_id
+  # backend
+  alb_dns     = module.backend.alb_dns
+  alb_zone_id = module.backend.alb_zone_id
 }
 
 ## cognito ###
