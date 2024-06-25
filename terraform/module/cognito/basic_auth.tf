@@ -1,3 +1,4 @@
+# basic認証用のCognitoユーザープール
 resource "aws_cognito_user_pool" "basic_access" {
   name                     = "${var.pj}-basic-auth"
   auto_verified_attributes = ["email"]
@@ -56,11 +57,13 @@ resource "aws_cognito_user_pool" "basic_access" {
   }
 }
 
+# Cognito ドメイン
 resource "aws_cognito_user_pool_domain" "basic_access" {
   user_pool_id = aws_cognito_user_pool.basic_access.id
   domain       = "mokokero-internal"
 }
 
+# Cognito ユーザープールクライアント
 resource "aws_cognito_user_pool_client" "basic_access" {
   name         = "${var.pj}-basic-${var.env}"
   user_pool_id = aws_cognito_user_pool.basic_access.id
