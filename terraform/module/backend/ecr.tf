@@ -25,9 +25,8 @@ resource "aws_ecr_lifecycle_policy" "private_repository_policy" {
       "description": "Expire images older than 1 day",
       "selection": {
         "tagStatus": "any",
-        "countType": "sinceImagePushed",
-        "countUnit": "days",
-        "countNumber": 10
+        "countType": "imageCountMoreThan",
+        "countNumber": 3
       },
       "action": {
         "type": "expire"
