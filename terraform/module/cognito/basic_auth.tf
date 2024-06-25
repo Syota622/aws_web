@@ -57,13 +57,13 @@ resource "aws_cognito_user_pool" "basic_access" {
 }
 
 resource "aws_cognito_user_pool_domain" "basic_access" {
-  user_pool_id = aws_cognito_user_pool.access.id
+  user_pool_id = aws_cognito_user_pool.basic_access.id
   domain       = "mokokero-internal"
 }
 
 resource "aws_cognito_user_pool_client" "basic_access" {
   name         = "${var.pj}-basic-${var.env}"
-  user_pool_id = aws_cognito_user_pool.access.id
+  user_pool_id = aws_cognito_user_pool.basic_access.id
   generate_secret     = true
 
   access_token_validity                = 60
