@@ -43,6 +43,11 @@ module "backend" {
 
   # database
   secrets_manager_arn = module.database.secrets_manager_arn
+
+  # cognito
+  basic_user_pool_arn = module.cognito.basic_user_pool_arn
+  basic_user_pool_client_back_id = module.cognito.basic_user_pool_client_back_id
+  basic_user_pool_domain = module.cognito.basic_user_pool_domain
 }
 
 ## domain ###
