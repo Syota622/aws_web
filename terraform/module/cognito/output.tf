@@ -1,3 +1,4 @@
+# basic 認証用の Cognito ユーザープール
 output "basic_user_pool_arn" {
   value = aws_cognito_user_pool.basic_access.arn
 }
