@@ -1,6 +1,9 @@
 package graph
 
-import "golang/graph/generated"
+import (
+	"context"
+	"golang/graph/generated"
+)
 
 type Resolver struct{}
 
@@ -10,6 +13,6 @@ func (r *Resolver) Query() generated.QueryResolver {
 
 type queryResolver struct{ *Resolver }
 
-func (r *queryResolver) Hello() string {
-	return "Hello, world!"
+func (r *queryResolver) Hello(ctx context.Context) (string, error) {
+	return "Hello, world!", nil
 }

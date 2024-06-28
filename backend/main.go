@@ -14,6 +14,9 @@ import (
 
 	"golang/handlers"
 	"golang/models"
+
+	"golang/graph"
+	"golang/graph/generated"
 )
 
 // DBConfig はデータベース接続情報を保持する構造体です
@@ -56,7 +59,7 @@ func main() {
 	r.POST("/query", func(c *gin.Context) {
 		srv.ServeHTTP(c.Writer, c.Request)
 	})
-	r.GET("/", func(c *gin.Context) {
+	r.GET("/graphiql", func(c *gin.Context) {
 		playground.Handler("GraphQL", "/query").ServeHTTP(c.Writer, c.Request)
 	})
 
