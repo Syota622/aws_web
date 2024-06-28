@@ -1,5 +1,5 @@
 schema:
-  - schema.graphqls
+  - graph/schema.graphqls
 
 exec:
   filename: graph/generated/generated.go
@@ -8,8 +8,3 @@ exec:
 model:
   filename: graph/model/models_gen.go
   package: model
-
-resolver:
-  layout: follow-schema
-  dir: graph
-  package: graph
