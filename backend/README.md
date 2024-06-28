@@ -35,5 +35,5 @@ go get github.com/99designs/gqlgen/codegen/config@v0.17.49
 go get github.com/99designs/gqlgen/internal/imports@v0.17.49
 
 # GraphQL
-- schema.graphqls ファイルを更新
-- go run github.com/99designs/gqlgen generate
+1. schema.graphqls ファイルを更新
+2. go run github.com/99designs/gqlgen generate
