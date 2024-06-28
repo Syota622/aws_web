@@ -1,10 +1,3 @@
-# go
-go get -u github.com/gin-gonic/gin
-RUN go get -u gorm.io/gorm
-RUN go get -u gorm.io/driver/mysql
-RUN go get -u golang.org/x/crypto/bcrypt
-go get github.com/joho/godotenv
-
 # docker compose
 docker-compose up --build
 docker compose exec web sh
@@ -28,3 +21,12 @@ curl -X POST https://api.mokokero.com/signup \
         "email": "testuser@example.com"
     }'
 ```
+
+# go
+go get -u github.com/gin-gonic/gin
+RUN go get -u gorm.io/gorm
+RUN go get -u gorm.io/driver/mysql
+RUN go get -u golang.org/x/crypto/bcrypt
+go get github.com/joho/godotenv
+go get -u github.com/99designs/gqlgen
+go get github.com/99designs/gqlgen/graphql/handler/transport@v0.17.49

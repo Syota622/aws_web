@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -48,6 +50,15 @@ func main() {
 
 	// Ginのルーターを作成
 	r := gin.Default()
+
+	// GraphQLのエンドポイントとプレイグラウンドのハンドラを設定
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	r.POST("/query", func(c *gin.Context) {
+		srv.ServeHTTP(c.Writer, c.Request)
+	})
+	r.GET("/", func(c *gin.Context) {
+		playground.Handler("GraphQL", "/query").ServeHTTP(c.Writer, c.Request)
+	})
 
 	// ルートハンドラを追加
 	r.GET("/", func(c *gin.Context) {
