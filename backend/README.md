@@ -37,3 +37,9 @@ go get github.com/99designs/gqlgen/internal/imports@v0.17.49
 # GraphQL
 1. schema.graphqls ファイルを更新
 2. go run github.com/99designs/gqlgen generate
+
+# go: モジュールトラブルシューティング
+- rm go.mod go.sum
+- go mod init golang
+- go get ./...
+- go mod tidy
