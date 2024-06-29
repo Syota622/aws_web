@@ -57,7 +57,7 @@ resource "aws_cognito_user_pool" "basic_access" {
   }
 }
 
-# Cognito ドメイン
+# Cognito ドメイン（ログインページや認証エンドポイントのURLを生成するために使用）
 resource "aws_cognito_user_pool_domain" "basic_access" {
   user_pool_id = aws_cognito_user_pool.basic_access.id
   domain       = "mokokero-internal"
