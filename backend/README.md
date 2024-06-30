@@ -43,3 +43,14 @@ go get github.com/99designs/gqlgen/internal/imports@v0.17.49
 - go mod init golang
 - go get ./...
 - go mod tidy
+
+# curl
+```sh
+% curl 'https://api.mokokero.com/query' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "query { hello greet(name: \"test\") }"
+  }'
+{"data":{"hello":"Hello, world!","greet":"Hello, test!"}}
+```
