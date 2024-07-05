@@ -1,4 +1,5 @@
 # docker compose
+docker-compose up -d
 docker-compose up --build
 docker compose exec web sh
 docker compose exec db mysql -u root -D myapp -ppassword
@@ -46,11 +47,18 @@ go get github.com/99designs/gqlgen/internal/imports@v0.17.49
 
 # curl
 ```sh
-% curl 'https://api.mokokero.com/query' \
+curl 'https://api.mokokero.com/query' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
     "query": "query { hello greet(name: \"test\") }"
   }'
-{"data":{"hello":"Hello, world!","greet":"Hello, test!"}}
+# {"data":{"hello":"Hello, world!","greet":"Hello, test!"}}
+
+curl 'http://localhost:8080/query' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "query { hello greet(name: \"test\") }"
+  }'
 ```
