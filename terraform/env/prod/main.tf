@@ -50,6 +50,13 @@ module "backend" {
   basic_user_pool_domain = module.cognito.basic_user_pool_domain
 }
 
+## frontend ###
+module "frontend" {
+  source = "../../module/frontend"
+  pj     = var.pj
+  env    = var.env
+}
+
 ## domain ###
 module "domain" {
   source = "../../module/domain"
