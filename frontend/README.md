@@ -11,6 +11,3 @@ ECSのAPIエンドポイントを利用する。
 ```log
 frontend-app-1  |   networkError: TypeError: fetch failed
 ```
-
-# S3への手動デプロイ
-- npm run build
