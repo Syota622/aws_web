@@ -1,3 +1,6 @@
+# docker compose
+docker-compose up -d
+
 # npm
 npm install @apollo/client graphql
 
@@ -11,4 +14,3 @@ frontend-app-1  |   networkError: TypeError: fetch failed
 
 # S3への手動デプロイ
 - npm run build
-- 
