@@ -1,142 +1,101 @@
-# basic認証用のCognitoユーザープール
+# ユーザープール
 resource "aws_cognito_user_pool" "basic_access" {
-  name                     = "${var.pj}-basic-auth"
-  auto_verified_attributes = ["email"]
-  deletion_protection      = "ACTIVE"
-  username_attributes      = ["email"]
 
+  name                     = "${var.pj}-basic-auth"
+  deletion_protection      = "ACTIVE"             # 誤削除防止
+  auto_verified_attributes = ["email"]            # メールアドレスを自動検証
+  username_attributes      = ["email"]            # メールアドレスをユーザー名として使用
+
+  # 管理者によるユーザー作成の設定
+  admin_create_user_config {
+    allow_admin_create_user_only = true  # 管理者のみがユーザーを作成可能
+  }
+
+  # Cognito のデフォルトメール送信を使用
   email_configuration {
     email_sending_account = "COGNITO_DEFAULT"
   }
 
-  admin_create_user_config {
-    allow_admin_create_user_only = true
-  }
-
-  account_recovery_setting {
-    recovery_mechanism {
-      name     = "verified_email"
-      priority = 1
-    }
-  }
-
+  # パスワードポリシーの設定
   password_policy {
-    minimum_length                   = 8
-    require_lowercase                = true
-    require_numbers                  = true
-    require_symbols                  = true
-    require_uppercase                = true
-    temporary_password_validity_days = 7
+    minimum_length                   = 8     # 最小8文字
+    require_lowercase                = true  # 小文字必須
+    require_numbers                  = true  # 数字必須
+    require_symbols                  = true  # 記号必須
+    require_uppercase                = true  # 大文字必須
+    temporary_password_validity_days = 7     # 一時パスワードの有効期限は7日間
   }
 
-  schema {
-    attribute_data_type      = "String"
-    developer_only_attribute = false
-    mutable                  = true
-    name                     = "email"
-    required                 = true
+  # ユーザー名の設定
+  username_configuration {
+    case_sensitive = false  # ユーザー名の大文字小文字を区別しない
+  }
 
+  # ユーザー属性のスキーマ定義
+  schema {
+    attribute_data_type      = "String"  # 文字列型
+    developer_only_attribute = false     # 開発者専用属性ではない
+    mutable                  = true      # 変更可能
+    name                     = "email"   # 属性名は "email"
+    required                 = true      # 必須属性
+
+    # 文字列属性の制約
     string_attribute_constraints {
-      max_length = "2048"
-      min_length = "0"
+      max_length = "2048"  # 最大長
+      min_length = "0"     # 最小長
     }
   }
 
-  user_attribute_update_settings {
-    attributes_require_verification_before_update = [
-      "email",
+  # 既存の設定を維持するための追加設定
+  lifecycle {
+    ignore_changes = [
+      schema
     ]
-  }
-
-  username_configuration {
-    case_sensitive = false
-  }
-
-  verification_message_template {
-    default_email_option = "CONFIRM_WITH_CODE"
   }
 }
 
-# Cognito ドメイン（ログインページや認証エンドポイントのURLを生成するために使用）
+# Cognito ユーザープールのドメイン設定
 resource "aws_cognito_user_pool_domain" "basic_access" {
-  user_pool_id = aws_cognito_user_pool.basic_access.id
-  domain       = "mokokero-internal"
+
+  user_pool_id = aws_cognito_user_pool.basic_access[count.index].id
+  domain       = "learn-internal"
 }
 
 # Cognito ユーザープールクライアント
 resource "aws_cognito_user_pool_client" "basic_access" {
-  name         = "${var.pj}-basic-${var.env}"
-  user_pool_id = aws_cognito_user_pool.basic_access.id
-  generate_secret     = true
 
-  access_token_validity                = 60
-  allowed_oauth_flows                  = ["code"]
-  allowed_oauth_flows_user_pool_client = true
-  allowed_oauth_scopes                 = ["openid"]
-  auth_session_validity                = 3
-  callback_urls = [
-    "https://api.mokokero.com/oauth2/idpresponse",
-    "https://learn-ecs-alb-prod-50152165.ap-northeast-1.elb.amazonaws.com/oauth2/idpresponse",
-  ]
-  enable_propagate_additional_user_context_data = false
-  enable_token_revocation                       = true
+  name         = "${var.pj}-backend-${var.env}"
+  user_pool_id = "ap-northeast-1_????????"
+
+  generate_secret  = true                                        # クライアントシークレットを生成
+
+  access_token_validity                = 60          # アクセストークンの有効期間（分）
+  allowed_oauth_flows                  = ["code"]    # 許可する OAuth フロー
+  allowed_oauth_flows_user_pool_client = true        # ユーザープールクライアントで OAuth フローを許可
+  allowed_oauth_scopes                 = ["openid"]  # 許可する OAuth スコープ
+  auth_session_validity                = 3           # 認証セッションの有効期間（日）
+  
+  # コールバック URL（認証後のリダイレクト先）
+  callback_urls = local.callback_urls[var.env]
+  
+  enable_token_revocation = true  # トークンの取り消しを有効化
+  
+  # 明示的に許可する認証フロー
   explicit_auth_flows = [
-    "ALLOW_REFRESH_TOKEN_AUTH",
-    "ALLOW_USER_SRP_AUTH",
+    "ALLOW_REFRESH_TOKEN_AUTH",  # リフレッシュトークンによる認証を許可
+    "ALLOW_USER_SRP_AUTH",       # SRP (Secure Remote Password) 認証を許可
   ]
-  id_token_validity = 60
-  logout_urls       = []
+  
+  id_token_validity = 60  # ID トークンの有効期間（分）
 
-  prevent_user_existence_errors = "ENABLED"
-  read_attributes = [
-    "address",
-    "birthdate",
-    "email",
-    "email_verified",
-    "family_name",
-    "gender",
-    "given_name",
-    "locale",
-    "middle_name",
-    "name",
-    "nickname",
-    "phone_number",
-    "phone_number_verified",
-    "picture",
-    "preferred_username",
-    "profile",
-    "updated_at",
-    "website",
-    "zoneinfo",
-  ]
-  refresh_token_validity = 30
-  supported_identity_providers = [
-    "COGNITO",
-  ]
-  write_attributes = [
-    "address",
-    "birthdate",
-    "email",
-    "family_name",
-    "gender",
-    "given_name",
-    "locale",
-    "middle_name",
-    "name",
-    "nickname",
-    "phone_number",
-    "picture",
-    "preferred_username",
-    "profile",
-    "updated_at",
-    "website",
-    "zoneinfo",
-  ]
+  prevent_user_existence_errors = "ENABLED"    # ユーザー存在エラーの防止を有効化
+  refresh_token_validity        = 1            # リフレッシュトークンの有効期間（日）
+  supported_identity_providers  = ["COGNITO"]  # サポートするIDプロバイダ
 
+  # トークンの有効期間の単位設定
   token_validity_units {
-    access_token  = "minutes"
-    id_token      = "minutes"
-    refresh_token = "days"
+    access_token  = "minutes"  # アクセストークンは分単位
+    id_token      = "minutes"  # ID トークンは分単位
+    refresh_token = "days"     # リフレッシュトークンは日単位
   }
-
 }
