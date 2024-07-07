@@ -57,7 +57,7 @@ resource "aws_cognito_user_pool" "basic_access" {
 # Cognito ユーザープールのドメイン設定
 resource "aws_cognito_user_pool_domain" "basic_access" {
 
-  user_pool_id = aws_cognito_user_pool.basic_access[count.index].id
+  user_pool_id = aws_cognito_user_pool.basic_access.id
   domain       = "learn-internal"
 }
 
@@ -65,7 +65,7 @@ resource "aws_cognito_user_pool_domain" "basic_access" {
 resource "aws_cognito_user_pool_client" "basic_access" {
 
   name         = "${var.pj}-backend-${var.env}"
-  user_pool_id = "ap-northeast-1_????????"
+  user_pool_id = aws_cognito_user_pool.basic_access.id
 
   generate_secret  = true                                        # クライアントシークレットを生成
 
@@ -76,7 +76,10 @@ resource "aws_cognito_user_pool_client" "basic_access" {
   auth_session_validity                = 3           # 認証セッションの有効期間（日）
   
   # コールバック URL（認証後のリダイレクト先）
-  callback_urls = local.callback_urls[var.env]
+  callback_urls = [
+    local.basic_callback_urls[var.env], 
+    "https://${var.alb_dns}/oauth2/idpresponse"
+  ]
   
   enable_token_revocation = true  # トークンの取り消しを有効化
   

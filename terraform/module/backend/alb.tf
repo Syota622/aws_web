@@ -14,7 +14,7 @@ resource "aws_lb" "ecs_alb" {
   #   prefix  = "log_alb"
   #   enabled = true
   # }
-}
+}  
 
 # Target Group
 resource "aws_lb_target_group" "ecs_tg" {
