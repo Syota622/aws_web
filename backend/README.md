@@ -63,3 +63,16 @@ curl 'http://localhost:8080/query' \
     "query": "query { hello greet(name: \"test\") }"
   }'
 ```
+
+# 参考記事
+- ディレクトリ構成が非常に役にたつ
+https://qiita.com/WebEngrChild/items/d9b87944235c5220ae5b
+
+- ドメイン駆動設計(DDD)
+https://service.shiftinc.jp/column/4654/
+
+- Goで学ぶClean Architecture入門
+https://qiita.com/arakawa_moriyuki/items/59ce00542d5859d60a2d
+
+- CleanArchitectureとドメイン駆動設計の違い
+https://qiita.com/tominagaaaaaa/items/d3b4f96f21dadcac790a
