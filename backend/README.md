@@ -4,7 +4,30 @@ docker-compose up --build
 docker compose exec web sh
 docker compose exec db mysql -u root -D myapp -ppassword
 
-# Curl
+# go
+go get -u github.com/gin-gonic/gin
+RUN go get -u gorm.io/gorm
+RUN go get -u gorm.io/driver/mysql
+RUN go get -u golang.org/x/crypto/bcrypt
+go get github.com/joho/godotenv
+go get -u github.com/99designs/gqlgen
+go get github.com/99designs/gqlgen/graphql/handler/transport@v0.17.49
+go get github.com/99designs/gqlgen@v0.17.49
+go get github.com/99designs/gqlgen/codegen/config@v0.17.49
+go get github.com/99designs/gqlgen/internal/imports@v0.17.49
+go get github.com/gin-contrib/cors
+
+# GraphQL
+1. graph/schema/*.graphql ファイルを更新
+2. go run -mod=mod github.com/99designs/gqlgen generate
+
+# go: モジュールトラブルシューティング
+- rm go.mod go.sum
+- go mod init golang
+- go get ./...
+- go mod tidy
+
+# curl
 ```sh
 curl -X POST http://localhost:8080/signup \
     -H "Content-Type: application/json" \
@@ -21,33 +44,17 @@ curl -X POST https://api.mokokero.com/signup \
         "password": "password123",
         "email": "testuser@example.com"
     }'
-```
-
-# go
-go get -u github.com/gin-gonic/gin
-RUN go get -u gorm.io/gorm
-RUN go get -u gorm.io/driver/mysql
-RUN go get -u golang.org/x/crypto/bcrypt
-go get github.com/joho/godotenv
-go get -u github.com/99designs/gqlgen
-go get github.com/99designs/gqlgen/graphql/handler/transport@v0.17.49
-go get github.com/99designs/gqlgen@v0.17.49
-go get github.com/99designs/gqlgen/codegen/config@v0.17.49
-go get github.com/99designs/gqlgen/internal/imports@v0.17.49
-go get github.com/gin-contrib/cors
-
-# GraphQL
-1. schema.graphqls ファイルを更新
-2. go run -mod=mod github.com/99designs/gqlgen generate
-
-# go: モジュールトラブルシューティング
-- rm go.mod go.sum
-- go mod init golang
-- go get ./...
-- go mod tidy
-
-# curl
-```sh
+curl -X POST http://localhost:8080/query \
+-H "Content-Type: application/json" \
+-d '{
+  "query": "mutation($input: LoginInput!) { login(input: $input) { token user { id username email } errors { field message } } }",
+  "variables": {
+    "input": {
+      "email": "testuser1@example.com",
+      "password": "password1"
+    }
+  }
+}'
 curl 'https://api.mokokero.com/query' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
