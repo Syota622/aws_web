@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 
 	"golang/handlers"
 	"golang/models"
@@ -50,18 +49,16 @@ func main() {
 	// JSON文字列をDBConfig構造体にパース
 	var dbConfig DBConfig
 	if err := json.Unmarshal([]byte(dbConfigJSON), &dbConfig); err != nil {
-		log.Fatalf("Failed to parse DB config JSON: %v", err)
+		log.Fatalf("データベース接続情報のパースに失敗しました: %v", err)
 	}
 
 	// DSN (Data Source Name) 文字列の生成
 	dsn := dbConfig.DBUser + ":" + dbConfig.DBPassword + "@tcp(" + dbConfig.DBHost + ":" + dbConfig.DBPort + ")/" + dbConfig.DBName + "?charset=utf8mb4&parseTime=True&loc=Local"
 
 	// データベース接続部分
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
-	})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("failed to connect database: %v", err)
+		log.Fatalf("データベース接続に失敗しました: %v", err)
 	}
 
 	// ユーザーモデルをマイグレーション

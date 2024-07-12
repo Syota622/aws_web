@@ -60,6 +60,31 @@ curl -X POST http://localhost:8080/query \
 }'
 ```
 
+# graphql
+```graphql
+mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    token
+    user {
+      id
+      username
+      email
+    }
+    errors {
+      field
+      message
+    }
+  }
+}
+# variables
+{
+  "input": {
+    "email": "testuser1@example.com",
+    "password": "password1"
+  }
+}
+```
+
 # 参考記事
 - ディレクトリ構成が非常に役にたつ
 https://qiita.com/WebEngrChild/items/d9b87944235c5220ae5b
