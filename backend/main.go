@@ -15,8 +15,8 @@ import (
 	"golang/handlers"
 	"golang/models"
 
-	"golang/graph"
 	"golang/graph/generated"
+	graph "golang/graph/resolver"
 )
 
 // DBConfig はデータベース接続情報を保持する構造体です

@@ -1,5 +1,3 @@
-# gqlgen.yml
-
 schema:
   - graph/schema/*.graphql
 
@@ -13,11 +11,10 @@ model:
 
 resolver:
   layout: follow-schema
-  dir: graph
+  dir: graph/resolver
   package: graph
 
-autobind:
-  - "golang/graph/model"
+autobind: []
 
 models:
   ID:
