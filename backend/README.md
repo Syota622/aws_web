@@ -32,7 +32,7 @@ go get github.com/gin-contrib/cors
 ```sh
 curl -X POST http://localhost:8080/signup \
     -H "Content-Type: application/json" \
-    -H "X-Custom-Header: YourSecretValue" \
+    -H "X-Custom-Header: YourSecretValue111" \
     -d '{
         "username": "testuser100",
         "password": "password100",
@@ -53,8 +53,8 @@ curl -X POST http://localhost:8080/query \
   "query": "mutation($input: LoginInput!) { login(input: $input) { token user { id username email } errors { field message } } }",
   "variables": {
     "input": {
-      "email": "testuser1@example.com",
-      "password": "password1"
+      "email": "testuser100@example.com",
+      "password": "password100"
     }
   }
 }'

@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	"golang/handlers"
 	"golang/models"
@@ -28,6 +29,19 @@ type DBConfig struct {
 	DBUser     string `json:"DB_USER"`
 }
 
+// recoveryMiddleware はパニックを回復するミドルウェアです
+func recoveryMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("Recovered from panic: %v", r)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			}
+		}()
+		c.Next()
+	}
+}
+
 func main() {
 	// 環境変数からJSON文字列を取得
 	// DB_CONFIG={"DB_HOST":"1","DB_NAME":"2","DB_PASSWORD":"3","DB_PORT":"4","DB_USER":"5"}
@@ -42,10 +56,12 @@ func main() {
 	// DSN (Data Source Name) 文字列の生成
 	dsn := dbConfig.DBUser + ":" + dbConfig.DBPassword + "@tcp(" + dbConfig.DBHost + ":" + dbConfig.DBPort + ")/" + dbConfig.DBName + "?charset=utf8mb4&parseTime=True&loc=Local"
 
-	// データベースに接続
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	// データベース接続部分
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Fatalf("failed to connect database: %v", err)
 	}
 
 	// ユーザーモデルをマイグレーション
@@ -53,9 +69,15 @@ func main() {
 
 	// Ginのルーターを作成
 	r := gin.Default()
+	r.Use(recoveryMiddleware())
+
+	// Resolverの初期化
+	resolver := &graph.Resolver{
+		DB: db,
+	}
 
 	// GraphQLのエンドポイントとプレイグラウンドのハンドラを設定
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 	r.POST("/query", func(c *gin.Context) {
 		srv.ServeHTTP(c.Writer, c.Request)
 	})
