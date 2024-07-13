@@ -29,12 +29,14 @@ type DBConfig struct {
 	DBUser     string `json:"DB_USER"`
 }
 
+// graphqlHandler はGraphQLのハンドラを返す関数です
 func graphqlHandler(srv *handler.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		srv.ServeHTTP(c.Writer, c.Request)
 	}
 }
 
+// playgroundHandler はGraphQL Playgroundのハンドラを返す関数です
 func playgroundHandler() gin.HandlerFunc {
 	h := playground.Handler("GraphQL playground", "/query")
 	return func(c *gin.Context) {
