@@ -29,18 +29,6 @@ type DBConfig struct {
 	DBUser     string `json:"DB_USER"`
 }
 
-// recoveryMiddleware はパニックを回復するミドルウェアです
-func recoveryMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		defer func() {
-			if r := recover(); r != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-			}
-		}()
-		c.Next()
-	}
-}
-
 func graphqlHandler(srv *handler.Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		srv.ServeHTTP(c.Writer, c.Request)
@@ -79,7 +67,6 @@ func main() {
 
 	// Ginのルーターを作成
 	r := gin.Default()
-	r.Use(recoveryMiddleware())
 
 	// CORS設定
 	config := cors.DefaultConfig()
