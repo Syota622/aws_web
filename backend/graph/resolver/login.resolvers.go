@@ -27,13 +27,12 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 	// バリデーション
 	var user models.User
 	if err := r.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
-		log.Printf("Error finding user: %v", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &model.LoginPayload{
 				Errors: []*model.Error{{Field: "email", Message: "メールアドレスまたはパスワードが正しくありません"}},
 			}, nil
 		}
-		return nil, fmt.Errorf("database error: %v", err)
+		return nil, fmt.Errorf("ユーザー情報の取得に失敗しました: %v", err)
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
@@ -59,7 +58,21 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 	}, nil
 }
 
+// Me is the resolver for the me field.
+func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: Me - me"))
+}
+
+// User is the resolver for the user field.
+func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: User - user"))
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
+// Query returns generated.QueryResolver implementation.
+func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
+
 type mutationResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }
