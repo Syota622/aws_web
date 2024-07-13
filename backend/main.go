@@ -7,7 +7,10 @@ import (
 	"os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -43,7 +46,6 @@ func recoveryMiddleware() gin.HandlerFunc {
 
 func main() {
 	// 環境変数からJSON文字列を取得
-	// DB_CONFIG={"DB_HOST":"1","DB_NAME":"2","DB_PASSWORD":"3","DB_PORT":"4","DB_USER":"5"}
 	dbConfigJSON := os.Getenv("DB_CONFIG")
 
 	// JSON文字列をDBConfig構造体にパース
@@ -68,6 +70,12 @@ func main() {
 	r := gin.Default()
 	r.Use(recoveryMiddleware())
 
+	// CORS設定
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowHeaders = append(config.AllowHeaders, "Authorization")
+	r.Use(cors.New(config))
+
 	// Resolverの初期化
 	resolver := &graph.Resolver{
 		DB: db,
@@ -75,17 +83,13 @@ func main() {
 
 	// GraphQLのエンドポイントとプレイグラウンドのハンドラを設定
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
-	r.POST("/query", func(c *gin.Context) {
-		srv.ServeHTTP(c.Writer, c.Request)
-	})
-	r.GET("/graphiql", func(c *gin.Context) {
-		playground.Handler("GraphQL", "/query").ServeHTTP(c.Writer, c.Request)
-	})
-
-	// ルートハンドラを追加
-	r.GET("/", func(c *gin.Context) {
-		c.String(200, "Hello, World!")
-	})
+	srv.AddTransport(transport.Options{})
+	srv.AddTransport(transport.GET{})
+	srv.AddTransport(transport.POST{})
+	srv.AddTransport(transport.MultipartForm{})
+	srv.Use(extension.Introspection{})
+	r.POST("/query", graphqlHandler(srv))
+	r.GET("/graphiql", playgroundHandler())
 
 	// カスタムヘッダーをチェックするミドルウェア
 	authMiddleware := func(c *gin.Context) {
@@ -107,4 +111,18 @@ func main() {
 
 	// サーバーをポート8080で開始
 	r.Run(":8080")
+}
+
+func graphqlHandler(srv *handler.Server) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		srv.ServeHTTP(c.Writer, c.Request)
+	}
+}
+
+func playgroundHandler() gin.HandlerFunc {
+	h := playground.Handler("GraphQL playground", "/query")
+	return func(c *gin.Context) {
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		h.ServeHTTP(c.Writer, c.Request)
+	}
 }

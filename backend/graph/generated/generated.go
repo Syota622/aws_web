@@ -309,7 +309,8 @@ type User {
 type Error {
   field: String!
   message: String!
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
