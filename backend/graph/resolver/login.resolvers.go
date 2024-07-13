@@ -19,7 +19,6 @@ import (
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*model.LoginPayload, error) {
-
 	// バリデーション
 	var user models.User
 	if err := r.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
