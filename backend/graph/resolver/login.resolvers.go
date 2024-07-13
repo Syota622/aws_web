@@ -19,10 +19,6 @@ import (
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*model.LoginPayload, error) {
-	if r.DB == nil {
-		log.Println("データベース接続が初期化されていません")
-		return nil, fmt.Errorf("データベース接続が初期化されていません")
-	}
 
 	// バリデーション
 	var user models.User
@@ -60,12 +56,31 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 
 // Me is the resolver for the me field.
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: Me - me"))
+	// TODO: 認証のロジックを実装する
+	// 例: コンテキストから現在のユーザーIDを取得
+	// userID := auth.GetUserIDFromContext(ctx)
+
+	// 仮の実装: ID 1 のユーザーを返す
+	return r.User(ctx, "1")
 }
 
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	var user models.User
+	if err := r.DB.First(&user, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("ユーザーが見つかりません: ID %s", id)
+		}
+		return nil, fmt.Errorf("ユーザー情報の取得に失敗しました: %v", err)
+	}
+
+	return &model.User{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt: user.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	}, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

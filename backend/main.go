@@ -7,8 +7,6 @@ import (
 	"os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/handler/extension"
-	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -36,11 +34,24 @@ func recoveryMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Printf("Recovered from panic: %v", r)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			}
 		}()
 		c.Next()
+	}
+}
+
+func graphqlHandler(srv *handler.Server) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		srv.ServeHTTP(c.Writer, c.Request)
+	}
+}
+
+func playgroundHandler() gin.HandlerFunc {
+	h := playground.Handler("GraphQL playground", "/query")
+	return func(c *gin.Context) {
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		h.ServeHTTP(c.Writer, c.Request)
 	}
 }
 
@@ -83,11 +94,6 @@ func main() {
 
 	// GraphQLのエンドポイントとプレイグラウンドのハンドラを設定
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
-	srv.AddTransport(transport.Options{})
-	srv.AddTransport(transport.GET{})
-	srv.AddTransport(transport.POST{})
-	srv.AddTransport(transport.MultipartForm{})
-	srv.Use(extension.Introspection{})
 	r.POST("/query", graphqlHandler(srv))
 	r.GET("/graphiql", playgroundHandler())
 
@@ -111,18 +117,4 @@ func main() {
 
 	// サーバーをポート8080で開始
 	r.Run(":8080")
-}
-
-func graphqlHandler(srv *handler.Server) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		srv.ServeHTTP(c.Writer, c.Request)
-	}
-}
-
-func playgroundHandler() gin.HandlerFunc {
-	h := playground.Handler("GraphQL playground", "/query")
-	return func(c *gin.Context) {
-		c.Header("Content-Type", "text/html; charset=utf-8")
-		h.ServeHTTP(c.Writer, c.Request)
-	}
 }
