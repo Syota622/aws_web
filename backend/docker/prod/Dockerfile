@@ -3,9 +3,9 @@ FROM golang:1.22-alpine as builder
 
 WORKDIR /app
 
-# 必要なファイルをコピー
-COPY backend/go.mod ./
-COPY backend/go.sum ./
+# # 必要なファイルをコピー
+# COPY backend/go.mod ./
+# COPY backend/go.sum ./
 
 # 依存関係をダウンロード
 RUN go mod download
@@ -13,8 +13,8 @@ RUN go mod download
 # プロジェクト全体をコピー
 COPY backend/. .
 
-# # 依存関係をダウンロード
-# RUN go mod download
+# 依存関係をダウンロード
+RUN go mod download
 
 # CGoを無効化してビルド
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o main .
