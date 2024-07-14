@@ -10,8 +10,8 @@ COPY backend/go.sum ./
 # 依存関係をダウンロード
 RUN go mod download
 
-# # プロジェクト全体をコピー
-# COPY backend/. .
+# プロジェクト全体をコピー
+COPY backend/. .
 
 # # 依存関係をダウンロード
 # RUN go mod download
