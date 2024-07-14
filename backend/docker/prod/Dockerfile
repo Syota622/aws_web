@@ -26,7 +26,9 @@ FROM alpine:3.19.1 as production
 
 # バッケージのインストール
 RUN apk update
-# RUN apk add vim git mysql-client jq
+
+# 実際の本番環境では不要。
+RUN apk add vim git mysql-client jq
 
 # RUN apk add --no-cache ca-certificates
 # RUN apk add --no-cache tzdata
