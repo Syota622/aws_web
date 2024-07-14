@@ -10,11 +10,15 @@ COPY backend/go.sum ./
 # 依存関係をダウンロード
 RUN go mod download
 
-# プロジェクト全体をコピー
-COPY backend/. .
+# # プロジェクト全体をコピー
+# COPY backend/. .
+
+# # 依存関係をダウンロード
+# RUN go mod download
 
 # CGoを無効化してビルド
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o -ldflags="-s -w" main .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" main .
+# RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o main .
 # RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o /app -ldflags="-s -w" cmd/main.go
 
 ### 本番用ステージ ###
