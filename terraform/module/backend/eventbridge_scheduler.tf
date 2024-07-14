@@ -33,8 +33,7 @@ resource "aws_iam_role_policy" "fargate_scheduler" {
           "ecs:UpdateService"
         ],
         Resource = [
-          "${var.ecs_service_arn}",
-          "${var.ecs_front_service_arn}"
+          aws_ecs_service.ecs_service.id
         ]
       }
     ]
@@ -43,31 +42,31 @@ resource "aws_iam_role_policy" "fargate_scheduler" {
 
 ### EventBridge Scheduler ###
 
-## Fargate ##
-# Fargate Start Scheduler
-resource "aws_scheduler_schedule" "fargate_start" {
-  count = var.env == "dev" || var.env == "prod" || var.env == "stg" ? 1 : 0
+# ## Fargate ##
+# # Fargate Start Scheduler
+# resource "aws_scheduler_schedule" "fargate_start" {
+#   count = var.env == "dev" || var.env == "prod" || var.env == "stg" ? 1 : 0
 
-  name        = "${var.pj}-fargate-start-scheduler-${var.env}"
-  description = "Start fargate on Weekdays at 08:45 JST"
+#   name        = "${var.pj}-fargate-start-scheduler-${var.env}"
+#   description = "Start fargate on Weekdays at 08:45 JST"
 
-  schedule_expression = "cron(45 23 ? * SUN-THU *)"
+#   schedule_expression = "cron(45 23 ? * SUN-THU *)"
 
-  flexible_time_window {
-    mode = "OFF"
-  }
+#   flexible_time_window {
+#     mode = "OFF"
+#   }
 
-  target {
-    arn      = "arn:aws:scheduler:::aws-sdk:ecs:updateService"
-    role_arn = aws_iam_role.fargate_scheduler[count.index].arn
+#   target {
+#     arn      = "arn:aws:scheduler:::aws-sdk:ecs:updateService"
+#     role_arn = aws_iam_role.fargate_scheduler[count.index].arn
 
-    input = jsonencode({
-      "Service" : "${var.ecs_service_name}",
-      "Cluster" : "${var.ecs_cluster_name}",
-      "DesiredCount" : 1
-    })
-  }
-}
+#     input = jsonencode({
+#       "Cluster" : aws_ecs_cluster.ecs_cluster.name,
+#       "Service" : aws_ecs_service.ecs_service.name
+#       "DesiredCount" : 1
+#     })
+#   }
+# }
 
 # Fargate Stop Scheduler
 resource "aws_scheduler_schedule" "fargate_fargate_stop" {
@@ -76,8 +75,7 @@ resource "aws_scheduler_schedule" "fargate_fargate_stop" {
 
   name = "${var.pj}-fargate-stop-scheduler-${var.env}"
 
-  schedule_expression = "cron(55 14 ? * MON-FRI *)"
-
+  schedule_expression = "cron(45 23 ? * SUN-THU *)"
   flexible_time_window {
     mode = "OFF"
   }
@@ -87,8 +85,8 @@ resource "aws_scheduler_schedule" "fargate_fargate_stop" {
     role_arn = aws_iam_role.fargate_scheduler[count.index].arn
 
     input = jsonencode({
-      "Service" : "${var.ecs_service_name}",
-      "Cluster" : "${var.ecs_cluster_name}",
+      "Cluster" : aws_ecs_cluster.ecs_cluster.name,
+      "Service" : aws_ecs_service.ecs_service.name
       "DesiredCount" : 0
     })
   }
