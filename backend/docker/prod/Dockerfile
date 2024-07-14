@@ -7,8 +7,8 @@ WORKDIR /app
 # COPY backend/go.mod ./
 # COPY backend/go.sum ./
 
-# 依存関係をダウンロード
-RUN go mod download
+# # 依存関係をダウンロード
+# RUN go mod download
 
 # プロジェクト全体をコピー
 COPY backend/. .
