@@ -1,4 +1,5 @@
 # docker compose
+docker-compose build --no-cache
 docker-compose up -d
 docker-compose up --build
 docker compose exec web sh
@@ -9,7 +10,7 @@ go get -u github.com/gin-gonic/gin
 RUN go get -u gorm.io/gorm
 RUN go get -u gorm.io/driver/mysql
 RUN go get -u golang.org/x/crypto/bcrypt
-go get github.com/joho/godotenv
+go get github.com/joho/godotenv 
 go get -u github.com/99designs/gqlgen
 go get github.com/99designs/gqlgen/graphql/handler/transport@v0.17.49
 go get github.com/99designs/gqlgen@v0.17.49
@@ -31,12 +32,13 @@ go get github.com/gin-contrib/cors
 ```sh
 curl -X POST http://localhost:8080/signup \
     -H "Content-Type: application/json" \
-    -H "X-Custom-Header: YourSecretValue" \
+    -H "X-Custom-Header: YourSecretValue111" \
     -d '{
-        "username": "testuser1",
-        "password": "password1",
-        "email": "testuser1@example.com"
+        "username": "testuser100",
+        "password": "password100",
+        "email": "testuser100@example.com"
     }'
+
 curl -X POST https://api.mokokero.com/signup \
     -H "Content-Type: application/json" \
     -d '{
@@ -44,31 +46,43 @@ curl -X POST https://api.mokokero.com/signup \
         "password": "password123",
         "email": "testuser@example.com"
     }'
+
 curl -X POST http://localhost:8080/query \
 -H "Content-Type: application/json" \
 -d '{
   "query": "mutation($input: LoginInput!) { login(input: $input) { token user { id username email } errors { field message } } }",
   "variables": {
     "input": {
-      "email": "testuser1@example.com",
-      "password": "password1"
+      "email": "testuser100@example.com",
+      "password": "password100"
     }
   }
 }'
-curl 'https://api.mokokero.com/query' \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "query { hello greet(name: \"test\") }"
-  }'
-# {"data":{"hello":"Hello, world!","greet":"Hello, test!"}}
+```
 
-curl 'http://localhost:8080/query' \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "query { hello greet(name: \"test\") }"
-  }'
+# graphql
+```graphql
+mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    token
+    user {
+      id
+      username
+      email
+    }
+    errors {
+      field
+      message
+    }
+  }
+}
+# variables
+{
+  "input": {
+    "email": "testuser1@example.com",
+    "password": "password1"
+  }
+}
 ```
 
 # 参考記事

@@ -8,6 +8,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -15,8 +16,8 @@ import (
 	"golang/handlers"
 	"golang/models"
 
-	"golang/graph"
 	"golang/graph/generated"
+	graph "golang/graph/resolver"
 )
 
 // DBConfig はデータベース接続情報を保持する構造体です
@@ -28,24 +29,39 @@ type DBConfig struct {
 	DBUser     string `json:"DB_USER"`
 }
 
+// graphqlHandler はGraphQLのハンドラを返す関数です
+func graphqlHandler(srv *handler.Server) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		srv.ServeHTTP(c.Writer, c.Request)
+	}
+}
+
+// playgroundHandler はGraphQL Playgroundのハンドラを返す関数です
+func playgroundHandler() gin.HandlerFunc {
+	h := playground.Handler("GraphQL playground", "/query")
+	return func(c *gin.Context) {
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		h.ServeHTTP(c.Writer, c.Request)
+	}
+}
+
 func main() {
 	// 環境変数からJSON文字列を取得
-	// DB_CONFIG={"DB_HOST":"1","DB_NAME":"2","DB_PASSWORD":"3","DB_PORT":"4","DB_USER":"5"}
 	dbConfigJSON := os.Getenv("DB_CONFIG")
 
 	// JSON文字列をDBConfig構造体にパース
 	var dbConfig DBConfig
 	if err := json.Unmarshal([]byte(dbConfigJSON), &dbConfig); err != nil {
-		log.Fatalf("Failed to parse DB config JSON: %v", err)
+		log.Fatalf("データベース接続情報のパースに失敗しました: %v", err)
 	}
 
 	// DSN (Data Source Name) 文字列の生成
 	dsn := dbConfig.DBUser + ":" + dbConfig.DBPassword + "@tcp(" + dbConfig.DBHost + ":" + dbConfig.DBPort + ")/" + dbConfig.DBName + "?charset=utf8mb4&parseTime=True&loc=Local"
 
-	// データベースに接続
+	// データベース接続部分
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Fatalf("データベース接続に失敗しました: %v", err)
 	}
 
 	// ユーザーモデルをマイグレーション
@@ -54,19 +70,21 @@ func main() {
 	// Ginのルーターを作成
 	r := gin.Default()
 
-	// GraphQLのエンドポイントとプレイグラウンドのハンドラを設定
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
-	r.POST("/query", func(c *gin.Context) {
-		srv.ServeHTTP(c.Writer, c.Request)
-	})
-	r.GET("/graphiql", func(c *gin.Context) {
-		playground.Handler("GraphQL", "/query").ServeHTTP(c.Writer, c.Request)
-	})
+	// CORS設定
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowHeaders = append(config.AllowHeaders, "Authorization")
+	r.Use(cors.New(config))
 
-	// ルートハンドラを追加
-	r.GET("/", func(c *gin.Context) {
-		c.String(200, "Hello, World!")
-	})
+	// Resolverの初期化
+	resolver := &graph.Resolver{
+		DB: db,
+	}
+
+	// GraphQLのエンドポイントとプレイグラウンドのハンドラを設定
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
+	r.POST("/query", graphqlHandler(srv))
+	r.GET("/graphiql", playgroundHandler())
 
 	// カスタムヘッダーをチェックするミドルウェア
 	authMiddleware := func(c *gin.Context) {

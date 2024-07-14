@@ -13,23 +13,20 @@ import (
 func SignUpHandler(c *gin.Context, db *gorm.DB) {
 	var user models.User
 
-	// c.ShouldBindJSON(&user)とは、リクエストボディをJSON形式で受け取り、User構造体にバインドするメソッド
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "リクエストの形式が正しくありません", "details": err.Error()})
 		return
 	}
 
-	// パスワードをハッシュ化
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "パスワードのハッシュ化に失敗", "details": err.Error()})
 		return
 	}
 	user.Password = string(hashedPassword)
 
-	// ユーザーをデータベースに保存
 	if err := db.Create(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ユーザーの作成に失敗", "details": err.Error()})
 		return
 	}
 
