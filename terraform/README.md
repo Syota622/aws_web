@@ -10,4 +10,4 @@ terraform import module.tf_backend.aws_s3_bucket_server_side_encryption_configur
 terraform import module.tf_backend.aws_s3_bucket_versioning.tfstate_s3_versioning learn-terraform-tfstate-prod
 
 # ローカルからECSへのログイン方法（ECS Exec）
-aws ecs execute-command --cluster learn-ecs-cluster-prod --task 430625c037df4b02a08544097ef7a4bd --container learn-container-prod --interactive --command "sh"
+aws ecs execute-command --cluster learn-ecs-cluster-prod --task 598479cd4ffd4eae9ee864580bef4b50 --container learn-container-prod --interactive --command "sh"
