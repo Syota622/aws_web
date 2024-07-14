@@ -17,8 +17,8 @@ COPY backend/. .
 # RUN go mod download
 
 # CGoを無効化してビルド
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" main .
-# RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o main .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o main .
+# RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build main .
 # RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o /app -ldflags="-s -w" cmd/main.go
 
 ### 本番用ステージ ###
