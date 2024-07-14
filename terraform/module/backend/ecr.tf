@@ -26,7 +26,7 @@ resource "aws_ecr_lifecycle_policy" "private_repository_policy" {
       "selection": {
         "tagStatus": "any",
         "countType": "imageCountMoreThan",
-        "countNumber": 3
+        "countNumber": 20
       },
       "action": {
         "type": "expire"
