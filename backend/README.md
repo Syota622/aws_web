@@ -17,6 +17,8 @@ go get github.com/99designs/gqlgen@v0.17.49
 go get github.com/99designs/gqlgen/codegen/config@v0.17.49
 go get github.com/99designs/gqlgen/internal/imports@v0.17.49
 go get github.com/gin-contrib/cors
+go get github.com/aws/aws-sdk-go-v2/config 
+go get github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider
 
 # GraphQL
 1. graph/schema/*.graphql ファイルを更新
