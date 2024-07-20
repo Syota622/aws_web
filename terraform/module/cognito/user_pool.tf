@@ -1,12 +1,44 @@
 ### Cognito ###
 # Cognito User Pool
 resource "aws_cognito_user_pool" "user_pool" {
-  name  = "${var.pj}-user-pool-${var.env}"
+  name = "${var.pj}-user-pool-${var.env}"
 
   lambda_config {
     pre_sign_up = aws_lambda_function.signup_lambda.arn
   }
 
+  # メールアドレスを必須属性として設定
+  schema {
+    attribute_data_type = "String"
+    name                = "email"
+    required            = true
+    mutable             = true
+
+    string_attribute_constraints {
+      min_length = 1
+      max_length = 256
+    }
+  }
+
+  # メールアドレスを自動検証属性として設定
+  auto_verified_attributes = ["email"]
+
+  # メールアドレスをユーザー名として使用する設定
+  username_attributes = ["email"]
+
+  # パスワードポリシーの設定（オプション）
+  password_policy {
+    minimum_length    = 8
+    require_lowercase = true
+    require_numbers   = true
+    require_symbols   = true
+    require_uppercase = true
+  }
+
+  # メール設定（オプション）
+  email_configuration {
+    email_sending_account = "COGNITO_DEFAULT"
+  }
 }
 
 # User Pool Client
@@ -15,10 +47,29 @@ resource "aws_cognito_user_pool_client" "user_pool_client" {
   user_pool_id = aws_cognito_user_pool.user_pool.id
 
   explicit_auth_flows = [
-    "ALLOW_ADMIN_USER_PASSWORD_AUTH", # 管理者がパスワード認証を許可
-    "ALLOW_REFRESH_TOKEN_AUTH",       # リフレッシュトークン認証を許可
     "ALLOW_USER_PASSWORD_AUTH",       # ユーザーパスワード認証を許可
+    "ALLOW_REFRESH_TOKEN_AUTH",       # リフレッシュトークン認証を許可
     "ALLOW_USER_SRP_AUTH"             # ユーザーSRP認証を許可
+  ]
+
+  # クライアントがユーザー名とメールアドレスの両方を読み取れるようにする
+  read_attributes = [
+    "email",
+    "email_verified",
+    "name",
+    "phone_number",
+    "phone_number_verified",
+    "family_name",
+    "given_name"
+  ]
+
+  # クライアントがユーザー名とメールアドレスの両方を書き込めるようにする
+  write_attributes = [
+    "email",
+    "name",
+    "phone_number",
+    "family_name",
+    "given_name"
   ]
 }
 
