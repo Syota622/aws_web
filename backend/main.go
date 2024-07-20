@@ -13,6 +13,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
+	"golang/auth"
 	"golang/handlers"
 	"golang/models"
 
@@ -46,6 +47,11 @@ func playgroundHandler() gin.HandlerFunc {
 }
 
 func main() {
+	// Cognitoクライアントの初期化
+	if err := auth.InitCognitoClient(); err != nil {
+		log.Fatalf("Cognitoクライアントの初期化に失敗しました: %v", err)
+	}
+
 	// 環境変数からJSON文字列を取得
 	dbConfigJSON := os.Getenv("DB_CONFIG")
 
