@@ -1,48 +1,20 @@
-# Query型: データの取得操作を定義します
-type Query {
-  # me: 現在認証されているユーザーの情報を取得します
-  # 戻り値: User型（ユーザー情報）
-  me: User
-
-  # user: 指定されたIDのユーザー情報を取得します
-  # 引数: id (ID!) - 取得したいユーザーのID（必須）
-  # 戻り値: User型（ユーザー情報）
-  user(id: ID!): User
-}
-
-# Mutation型: データの変更操作を定義します
 type Mutation {
-  # login: ユーザーログイン処理を行います
-  # 引数: input (LoginInput!) - ログイン情報（必須）
-  # 戻り値: LoginPayload型（ログイン結果）
   login(input: LoginInput!): LoginPayload!
 }
 
-# LoginInput: ログイン時に必要な情報を定義します
 input LoginInput {
-  email: String!    # メールアドレス（必須）
-  password: String! # パスワード（必須）
+  username: String!
+  password: String!
 }
 
-
-# LoginPayload: ログイン操作の結果を定義します
 type LoginPayload {
-  token: String     # 認証トークン（JWTなど）
-  user: User        # ログインしたユーザーの情報
-  errors: [Error!]  # エラー情報のリスト（存在する場合）
+  token: String
+  user: User
+  error: String
 }
 
-# User: ユーザー情報を定義します
 type User {
-  id: ID!           # ユーザーID（必須）
-  username: String! # ユーザー名（必須）
-  email: String!    # メールアドレス（必須）
-  createdAt: String! # アカウント作成日時（必須）
-  updatedAt: String! # 最終更新日時（必須）
-}
-
-# Error: エラー情報を定義します
-type Error {
-  field: String!    # エラーが発生したフィールド名（必須）
-  message: String!  # エラーメッセージ（必須）
+  id: ID!
+  username: String!
+  email: String
 }
