@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// SignUpHandler はユーザー登録を行うハンドラ
 func SignUpHandler(c *gin.Context, db *gorm.DB) {
 	var input struct {
 		Username string `json:"username" binding:"required"`
@@ -22,6 +23,7 @@ func SignUpHandler(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
+	// ユーザーの作成
 	user := models.User{
 		ID:       uuid.New().String(),
 		Username: input.Username,
