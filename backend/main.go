@@ -70,11 +70,6 @@ func main() {
 		log.Fatalf("データベース接続に失敗しました: %v", err)
 	}
 
-	// // マイグレーションの実行
-	// if err := migrations.MigrateDB(db); err != nil {
-	// 	log.Fatalf("マイグレーションに失敗しました: %v", err)
-	// }
-
 	// 通常のAutoMigrate
 	if err := db.AutoMigrate(&models.User{}); err != nil {
 		log.Fatalf("AutoMigrateに失敗しました: %v", err)
