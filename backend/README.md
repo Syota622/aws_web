@@ -33,21 +33,20 @@ go get github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider
 # curl
 ```sh
 curl -X POST http://localhost:8080/signup \
-    -H "Content-Type: application/json" \
-    -H "X-Custom-Header: YourSecretValue111" \
-    -d '{
-        "username": "testuser100",
-        "password": "password100",
-        "email": "testuser100@example.com"
-    }'
+     -H "Content-Type: application/json" \
+     -H "X-Custom-Header: YourSecretValue" \
+     -d '{
+       "username": "testuser",
+       "email": "testuser@example.com"
+     }'
 
 curl -X POST https://api.mokokero.com/signup \
-    -H "Content-Type: application/json" \
-    -d '{
-        "username": "testuser",
-        "password": "password123",
-        "email": "testuser@example.com"
-    }'
+     -H "Content-Type: application/json" \
+     -H "X-Custom-Header: YourSecretValue" \
+     -d '{
+       "username": "testuser",
+       "email": "testuser@example.com"
+     }'
 
 curl -X POST http://localhost:8080/query \
 -H "Content-Type: application/json" \
