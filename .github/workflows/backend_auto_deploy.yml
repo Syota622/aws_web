@@ -5,7 +5,7 @@ on:
     branches: 
     - "develop"
     - "main"
-    - "feature/**"
+    # - "feature/**"
     paths: # 特定のフォルダ内のファイルに変更があった場合のみデプロイ
       - '.github/workflows/backend_auto_deploy.yml'
       - 'backend/**'
