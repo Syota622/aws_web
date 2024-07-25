@@ -91,8 +91,8 @@ jobs:
           context: .
           file: backend/docker/${{ env.ENV_VAR }}/Dockerfile 
           platforms: linux/arm64
-          tags: build_image:latest
-          outputs: type=docker,dest=/tmp/build_image.tar
+          tags: ${{ env.PROJECT }}_image:latest
+          outputs: type=docker,dest=/tmp/${{ env.PROJECT }}_image.tar
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -112,7 +112,7 @@ jobs:
       # イメージをECRにプッシュする
       - name: Push image to ECR
         run: |
-          docker load --input /tmp/build_image.tar
+          docker load --input /tmp/${{ env.PROJECT }}_image.tar
           docker tag ${{ env.PROJECT }}_image:latest ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository-${{ env.ENV_VAR }}:latest
           docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository-${{ env.ENV_VAR }}:latest
 
@@ -121,7 +121,7 @@ jobs:
     needs: build
     runs-on: ubuntu-22.04
     environment: 
-      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || '' }}
+      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
