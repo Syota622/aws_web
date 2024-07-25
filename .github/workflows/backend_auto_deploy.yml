@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 env:
-  ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || '' }}
+  ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
   PROJECT: ${{ secrets.PROJECT }}
   AWS_REGION: ap-northeast-1
@@ -26,8 +26,8 @@ jobs:
 ################# SETUP #################
   setup:
     runs-on: ubuntu-22.04
-    environment: 
-      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || '' }}
+    # environment: 
+    #   name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || '' }}
     steps:
         - name: Checkout Code
           uses: actions/checkout@v4
@@ -89,8 +89,8 @@ jobs:
           context: .
           file: backend/docker/${{ env.ENV_VAR }}/Dockerfile 
           platforms: linux/arm64
-          tags: build_image:latest
-          outputs: type=docker,dest=/tmp/build_image.tar
+          tags: ${{ env.PROJECT }}_image:latest
+          outputs: type=docker,dest=/tmp/${{ env.PROJECT }}_image.tar
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
