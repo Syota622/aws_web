@@ -26,6 +26,7 @@ jobs:
 ################# SETUP #################
   setup:
     runs-on: ubuntu-22.04
+    # secretsに設定した環境変数を利用するために、environmentに設定
     environment: 
       name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     steps:
@@ -42,6 +43,7 @@ jobs:
 ################# Build Setting #################
   build:
     runs-on: ubuntu-22.04
+    # secretsに設定した環境変数を利用するために、environmentに設定
     environment: 
       name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     steps:
