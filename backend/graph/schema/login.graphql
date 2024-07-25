@@ -3,7 +3,7 @@ type Mutation {
 }
 
 input LoginInput {
-  username: String!
+  email: String!
   password: String!
 }
 
@@ -16,5 +16,5 @@ type LoginPayload {
 type User {
   id: ID!
   username: String!
-  email: String
+  email: String!
 }

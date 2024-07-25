@@ -22,7 +22,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 		AuthFlow: types.AuthFlowTypeUserPasswordAuth,
 		ClientId: aws.String(auth.CognitoClientID),
 		AuthParameters: map[string]string{
-			"USERNAME": input.Username,
+			"USERNAME": input.Email,
 			"PASSWORD": input.Password,
 		},
 	}
@@ -47,13 +47,15 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 	}
 
 	// ユーザー情報からIDとメールアドレスを抽出
-	var userID, email string
+	var userID, email, username string
 	for _, attr := range userOutput.UserAttributes {
 		switch *attr.Name {
 		case "sub":
 			userID = *attr.Value
 		case "email":
 			email = *attr.Value
+		case "preferred_username":
+			username = *attr.Value
 		}
 	}
 
@@ -61,8 +63,8 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 		Token: authOutput.AuthenticationResult.IdToken,
 		User: &model.User{
 			ID:       userID,
-			Username: *userOutput.Username,
-			Email:    &email,
+			Username: username,
+			Email:    email,
 		},
 	}, nil
 }
