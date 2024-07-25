@@ -26,8 +26,8 @@ jobs:
 ################# SETUP #################
   setup:
     runs-on: ubuntu-22.04
-    # environment: 
-    #   name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || '' }}
+    environment: 
+      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     steps:
         - name: Checkout Code
           uses: actions/checkout@v4
@@ -42,8 +42,8 @@ jobs:
 ################# Build Setting #################
   build:
     runs-on: ubuntu-22.04
-    # environment: 
-    #   name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || '' }}
+    environment: 
+      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
