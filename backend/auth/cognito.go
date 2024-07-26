@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -11,6 +12,8 @@ import (
 )
 
 var CognitoClient *cognitoidentityprovider.Client
+var CognitoClientID string
+var CognitoUserPoolID string
 
 type CognitoConfig struct {
 	ClientID   string `json:"clientId"`
@@ -18,17 +21,23 @@ type CognitoConfig struct {
 }
 
 func InitCognitoClient() error {
-	// 環境変数からJSON文字列を取得
-	cognitoConfigJSON := os.Getenv("ENVIRONMENT")
+	// 環境変数からJSON形式のCognito設定を取得
+	envJSON := os.Getenv("ENVIRONMENT")
 
-	// JSON文字列をCognitoConfig構造体にパース
-	var cognitoConfig CognitoConfig
-	if err := json.Unmarshal([]byte(cognitoConfigJSON), &cognitoConfig); err != nil {
-		return errors.New("Cognito設定情報のパースに失敗しました: " + err.Error())
+	if envJSON == "" {
+		return errors.New("ENVIRONMENT 環境変数が設定されていません")
 	}
 
-	if cognitoConfig.ClientID == "" || cognitoConfig.UserPoolID == "" {
-		return errors.New("ENVIRONMENT 環境変数に ClientID と UserPoolID を設定してください")
+	var cognitoConfig CognitoConfig
+	if err := json.Unmarshal([]byte(envJSON), &cognitoConfig); err != nil {
+		return fmt.Errorf("ENVIRONMENT 環境変数のJSONパースに失敗しました: %v", err)
+	}
+
+	CognitoClientID = cognitoConfig.ClientID
+	CognitoUserPoolID = cognitoConfig.UserPoolID
+
+	if CognitoClientID == "" || CognitoUserPoolID == "" {
+		return errors.New("CognitoClientID または CognitoUserPoolID が空です")
 	}
 
 	// AWS SDK for Go v2 の設定をロード
@@ -39,5 +48,14 @@ func InitCognitoClient() error {
 
 	// cognitoidentityprovider: NewFromConfig で Cognito クライアントを初期化
 	CognitoClient = cognitoidentityprovider.NewFromConfig(cfg)
+
 	return nil
+}
+
+func GetDBConfig() (string, error) {
+	dbConfig := os.Getenv("DB_CONFIG")
+	if dbConfig == "" {
+		return "", fmt.Errorf("DB_CONFIG が設定されていません")
+	}
+	return dbConfig, nil
 }
