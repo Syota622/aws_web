@@ -39,6 +39,12 @@ resource "aws_cognito_user_pool" "user_pool" {
   email_configuration {
     email_sending_account = "COGNITO_DEFAULT"
   }
+
+  lifecycle {
+    ignore_changes = [
+      password_policy
+    ]
+  }
 }
 
 # User Pool Client

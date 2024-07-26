@@ -44,11 +44,17 @@ resource "aws_ecs_task_definition" "task_definition" {
       }
     },
     # 環境変数の設定（SecretsManager）
+    # DB_CONFIG: Terraformで作成したシークレット
+    # ENVIRONMENT: マネジメントコンソールから作成したシークレット
     secrets = [
       {
         name      = "DB_CONFIG",
         valueFrom = var.secrets_manager_arn
-      }
+      },
+      {
+        name      = "ENVIRONMENT",
+        valueFrom = "arn:aws:secretsmanager:ap-northeast-1:235484765172:secret:learn/ecs/environment/prod-awApY2"
+      },
     ]
   }])
 }
