@@ -6,18 +6,27 @@ ECS_CLUSTER_NAME="learn-ecs-cluster-prod"
 ECS_SERVICE_NAME="learn-ecs-service-prod"
 MAX_ATTEMPTS=30
 SLEEP_TIME=30
-SCRIPT_DIR="~/Desktop/HC/aws_web"
-TERRAFORM_DIR="${SCRIPT_DIR}/terraform/env/prod"
+SCRIPT_DIR=~/Desktop/HC/aws_web
+TERRAFORM_DIR=$SCRIPT_DIR/terraform/env/prod
 
 # 現在のディレクトリを保存
 CURRENT_DIR=$(pwd)
 
-# スクリプトのディレクトリに移動
-cd "$SCRIPT_DIR" || exit 1
+# 現在のディレクトリを保存
+CURRENT_DIR=$(pwd)
+
+# Terraform Applyの実行
+echo "Terraform Applyを実行中..."
+cd "$TERRAFORM_DIR" || exit 1
+terraform init
+terraform apply -auto-approve
+
+# 元のディレクトリに戻る
+cd "$CURRENT_DIR" || exit 1
 
 # Auroraクラスターを起動
 echo "Auroraクラスターを起動中..."
-aws rds start-db-cluster --db-cluster-identifier $AURORA_CLUSTER_ID
+aws rds start-db-cluster --db-cluster-identifier $AURORA_CLUSTER_ID > /dev/null 2>&1
 
 # Auroraクラスターの状態を確認
 echo "Auroraクラスターの状態を確認中..."
@@ -34,12 +43,13 @@ for (( i=1; i<=$MAX_ATTEMPTS; i++ )); do
     sleep $SLEEP_TIME
 done
 
-# ECSのタスク数を1に設定
+# ECSのタスク数を1に設定（出力を抑制）
 echo "ECSのタスク数を1に設定中..."
 aws ecs update-service \
     --cluster $ECS_CLUSTER_NAME \
     --service $ECS_SERVICE_NAME \
-    --desired-count 1
+    --desired-count 1 \
+    > /dev/null 2>&1
 
 # ECSサービスの状態を確認
 echo "ECSサービスの状態を確認中..."
@@ -56,14 +66,5 @@ for (( i=1; i<=$MAX_ATTEMPTS; i++ )); do
     fi
     sleep $SLEEP_TIME
 done
-
-# Terraform Applyの実行
-echo "Terraform Applyを実行中..."
-cd "$TERRAFORM_DIR" || exit 1
-terraform init
-terraform apply -auto-approve
-
-# 元のディレクトリに戻る
-cd "$CURRENT_DIR" || exit 1
 
 echo "すべての操作が完了しました。"
