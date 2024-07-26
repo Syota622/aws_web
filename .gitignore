@@ -35,7 +35,3 @@ terraform.rc
 
 # ローカルで検証するためのフォルダ
 /.bk
-
-# 作業開始・停止
-aws_start.sh
-aws_stop.sh
