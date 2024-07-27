@@ -3,13 +3,6 @@ FROM golang:1.22-alpine as builder
 
 WORKDIR /app
 
-# # 必要なファイルをコピー
-# COPY backend/go.mod ./
-# COPY backend/go.sum ./
-
-# # 依存関係をダウンロード
-# RUN go mod download
-
 # プロジェクト全体をコピー
 COPY backend/. .
 
@@ -28,7 +21,8 @@ FROM alpine:3.19.1 as production
 RUN apk update
 
 # 実際の本番環境では不要。
-RUN apk add vim git mysql-client jq
+RUN apk add mysql-client
+# RUN apk add vim git mysql-client jq
 
 # RUN apk add --no-cache ca-certificates
 # RUN apk add --no-cache tzdata

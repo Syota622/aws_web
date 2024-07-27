@@ -50,9 +50,10 @@ jobs:
         with:
           go-version: 1.22
 
-      # Goの依存関係をダウンロード
-      - name: Go Mod Download
-        run: go mod download
+      # Dockerfileの中で go mod download を実行しているため、コメントアウト
+      # # Goの依存関係をダウンロード
+      # - name: Go Mod Download
+      #   run: go mod download
 
       # ARM64アーキテクチャのエミュレーションをセットアップ
       - name: Set up QEMU for arm64
