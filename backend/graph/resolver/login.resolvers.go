@@ -6,9 +6,11 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"golang/auth"
 	"golang/graph/generated"
 	"golang/graph/model"
+	"log"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
@@ -17,7 +19,10 @@ import (
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*model.LoginPayload, error) {
-	// Cognitoに認証リクエストを送信
+	log.Printf("Login attempt for email: %s", input.Email)
+	log.Printf("Using Cognito Client ID: %s", auth.CognitoClientID)
+	log.Printf("Using Cognito User Pool ID: %s", auth.CognitoUserPoolID)
+
 	authInput := &cognitoidentityprovider.InitiateAuthInput{
 		AuthFlow: types.AuthFlowTypeUserPasswordAuth,
 		ClientId: aws.String(auth.CognitoClientID),
@@ -29,26 +34,27 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 
 	authOutput, err := auth.CognitoClient.InitiateAuth(ctx, authInput)
 	if err != nil {
+		log.Printf("認証に失敗しました: %v", err)
 		return &model.LoginPayload{
-			Error: aws.String("認証に失敗しました"),
+			Error: aws.String(fmt.Sprintf("認証に失敗しました: %v", err)),
 		}, nil
 	}
 
-	// 認証成功時、ユーザー情報を取得
 	userInput := &cognitoidentityprovider.GetUserInput{
 		AccessToken: authOutput.AuthenticationResult.AccessToken,
 	}
 
 	userOutput, err := auth.CognitoClient.GetUser(ctx, userInput)
 	if err != nil {
+		log.Printf("Failed to get user info: %v", err)
 		return &model.LoginPayload{
-			Error: aws.String("ユーザー情報の取得に失敗しました"),
+			Error: aws.String(fmt.Sprintf("ユーザー情報の取得に失敗しました: %v", err)),
 		}, nil
 	}
 
-	// ユーザー情報からIDとメールアドレスを抽出
 	var userID, email, username string
 	for _, attr := range userOutput.UserAttributes {
+		log.Printf("ユーザー属性: %s = %s", *attr.Name, *attr.Value)
 		switch *attr.Name {
 		case "sub":
 			userID = *attr.Value
@@ -59,8 +65,9 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 		}
 	}
 
+	log.Printf("Login successful for user: %s", email)
 	return &model.LoginPayload{
-		Token: authOutput.AuthenticationResult.IdToken,
+		Token: aws.String(*authOutput.AuthenticationResult.IdToken),
 		User: &model.User{
 			ID:       userID,
 			Username: username,

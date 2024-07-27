@@ -12,9 +12,6 @@ TERRAFORM_DIR=$SCRIPT_DIR/terraform/env/prod
 # 現在のディレクトリを保存
 CURRENT_DIR=$(pwd)
 
-# 現在のディレクトリを保存
-CURRENT_DIR=$(pwd)
-
 # Terraform Applyの実行
 echo "Terraform Applyを実行中..."
 cd "$TERRAFORM_DIR" || exit 1
