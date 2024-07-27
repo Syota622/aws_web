@@ -23,6 +23,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 	log.Printf("Using Cognito Client ID: %s", auth.CognitoClientID)
 	log.Printf("Using Cognito User Pool ID: %s", auth.CognitoUserPoolID)
 
+	// ユーザー名とパスワードを使って認証を行う
 	authInput := &cognitoidentityprovider.InitiateAuthInput{
 		AuthFlow: types.AuthFlowTypeUserPasswordAuth,
 		ClientId: aws.String(auth.CognitoClientID),
@@ -32,6 +33,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 		},
 	}
 
+	// 認証を実行
 	authOutput, err := auth.CognitoClient.InitiateAuth(ctx, authInput)
 	if err != nil {
 		log.Printf("認証に失敗しました: %v", err)
@@ -46,7 +48,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*
 
 	userOutput, err := auth.CognitoClient.GetUser(ctx, userInput)
 	if err != nil {
-		log.Printf("Failed to get user info: %v", err)
+		log.Printf("ユーザー情報の取得に失敗しました: %v", err)
 		return &model.LoginPayload{
 			Error: aws.String(fmt.Sprintf("ユーザー情報の取得に失敗しました: %v", err)),
 		}, nil
