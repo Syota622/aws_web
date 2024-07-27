@@ -21,7 +21,7 @@ FROM alpine:3.19.1 as production
 RUN apk update
 
 # 実際の本番環境では不要。
-RUN apk add mysql-client
+RUN apk add mysql-client jq
 # RUN apk add vim git mysql-client jq
 
 # RUN apk add --no-cache ca-certificates
