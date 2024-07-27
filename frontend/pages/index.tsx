@@ -1,45 +1,14 @@
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+// pages/index.tsx
+import type { NextPage } from 'next';
+import Link from 'next/link';
 
-const client = new ApolloClient({
-  uri: `${process.env.NEXT_PUBLIC_API_URL}/query`,
-  cache: new InMemoryCache(),
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+const Home: NextPage = () => (
+  <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center">
+    <h1 className="text-4xl font-bold mb-4">Welcome to our App</h1>
+    <Link href="/login" className="text-blue-500 hover:text-blue-700">
+      Go to Login
+    </Link>
+  </div>
+);
 
-const HELLO_QUERY = gql`
-  query {
-    hello
-    greet(name: "John")
-  }
-`;
-
-interface HelloQueryResult {
-  hello: string;
-  greet: string;
-}
-
-export default function Home({ data }: { data: HelloQueryResult }) {
-  return (
-    <div>
-      <h1>Welcome to Next.js!</h1>
-      <p>This is a simple React component.</p>
-      <p>API URL: {process.env.NEXT_PUBLIC_API_URL}</p>
-      <p>Hello: {data.hello}</p>
-      <p>Greet: {data.greet}</p>
-    </div>
-  );
-}
-
-export async function getServerSideProps() {
-  const { data } = await client.query<HelloQueryResult>({
-    query: HELLO_QUERY,
-  });
-
-  return {
-    props: {
-      data,
-    },
-  };
-}
+export default Home;
