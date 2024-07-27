@@ -1,12 +1,16 @@
 #!/bin/bash
 
 # 設定
-ALB_ARN="arn:aws:elasticloadbalancing:ap-northeast-1:235484765172:loadbalancer/app/learn-ecs-alb-prod/c9944f45c3036335"
+ALB_NAME="learn-ecs-alb-prod"
 ECS_CLUSTER_NAME="learn-ecs-cluster-prod"
 ECS_SERVICE_NAME="learn-ecs-service-prod"
 AURORA_CLUSTER_ID="learn-serverless-prod"
 MAX_ATTEMPTS=30
 SLEEP_TIME=30
+
+# ALB の ARN を取得
+echo "ALB の ARN を取得中..."
+ALB_ARN=$(aws elbv2 describe-load-balancers --names $ALB_NAME --query 'LoadBalancers[0].LoadBalancerArn' --output text)
 
 # ALB削除
 echo "ALBを削除中..."
