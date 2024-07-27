@@ -35,5 +35,5 @@ func SignUpHandler(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "ユーザーの作成に成功", "userId": user.ID})
+	c.JSON(http.StatusOK, gin.H{"message": "ユーザーの作成に成功", "user": user})
 }
