@@ -3,10 +3,10 @@ package auth
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
@@ -17,35 +17,22 @@ var CognitoClientID string
 var CognitoUserPoolID string
 
 type CognitoConfig struct {
-	ClientID   string `json:"clientId"`
-	UserPoolID string `json:"userPoolId"`
+	ClientID   string `json:"COGNITO_CLIENT_ID"`
+	UserPoolID string `json:"COGNITO_USER_POOL_ID"`
 	AWSRegion  string `json:"AWS_REGION"`
 }
 
 func InitCognitoClient() error {
-	// すべての環境変数をログに出力（機密情報に注意）
-	log.Println("環境変数一覧:")
-	for _, env := range os.Environ() {
-		parts := strings.SplitN(env, "=", 2)
-		if len(parts) == 2 {
-			// 値の一部を隠してログ出力
-			log.Printf("%s=%s...", parts[0], parts[1][:min(len(parts[1]), 4)])
-		}
-	}
-
-	// ENVIRONMENT 変数の取得
+	// 環境変数からJSON形式のCognito設定を取得
 	envJSON := os.Getenv("ENVIRONMENT")
 	if envJSON == "" {
-		return fmt.Errorf("ENVIRONMENT 環境変数が設定されていません")
+		return errors.New("ENVIRONMENT 環境変数が設定されていません")
 	}
 
-	log.Printf("ENVIRONMENT 変数の長さ: %d", len(envJSON))
-	// 最初の数文字だけをログ出力（機密情報の保護のため）
-	log.Printf("ENVIRONMENT 変数の先頭: %s...", envJSON[:min(len(envJSON), 20)])
-
 	var cognitoConfig CognitoConfig
-	err := json.Unmarshal([]byte(envJSON), &cognitoConfig)
-	if err != nil {
+	if err := json.Unmarshal([]byte(envJSON), &cognitoConfig); err != nil {
+		// デバッグ: JSON解析エラーの詳細をログに出力
+		log.Printf("JSON解析エラー: %v", err)
 		return fmt.Errorf("ENVIRONMENT 環境変数のJSONパースに失敗しました: %v", err)
 	}
 
@@ -53,14 +40,14 @@ func InitCognitoClient() error {
 	CognitoUserPoolID = cognitoConfig.UserPoolID
 
 	if CognitoClientID == "" || CognitoUserPoolID == "" {
-		return fmt.Errorf("CognitoClientID または CognitoUserPoolID が空です")
+		return errors.New("CognitoClientID または CognitoUserPoolID が空です")
 	}
 
 	if cognitoConfig.AWSRegion == "" {
-		return fmt.Errorf("AWS_REGION が設定されていません")
+		return errors.New("AWS_REGION が設定されていません")
 	}
 
-	// AWS SDK の設定
+	// AWS SDK for Go v2 の設定をロード
 	cfg, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithRegion(cognitoConfig.AWSRegion),
 	)
@@ -68,19 +55,8 @@ func InitCognitoClient() error {
 		return fmt.Errorf("AWS設定のロードに失敗しました: %v", err)
 	}
 
+	// cognitoidentityprovider: NewFromConfig で Cognito クライアントを初期化
 	CognitoClient = cognitoidentityprovider.NewFromConfig(cfg)
 
-	log.Printf("Cognito Client initialized with ClientID: %s..., UserPoolID: %s..., Region: %s",
-		CognitoClientID[:min(len(CognitoClientID), 4)],
-		CognitoUserPoolID[:min(len(CognitoUserPoolID), 4)],
-		cognitoConfig.AWSRegion)
-
 	return nil
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
