@@ -44,11 +44,12 @@ jobs:
           echo "PROJECT: ${{ env.PROJECT }}"
           echo "AWS_REGION: ${{ env.AWS_REGION }}"
 
-      # Goの環境をセットアップ
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.22
+      # Dockerfile上でビルドプロセス全体を自己完結するように設定しているため、コメントアウト
+      # # Goの環境をセットアップ
+      # - name: Set up Go
+      #   uses: actions/setup-go@v5
+      #   with:
+      #     go-version: 1.22
 
       # Dockerfileの中で go mod download を実行しているため、コメントアウト
       # # Goの依存関係をダウンロード
