@@ -5,7 +5,6 @@ exports.handler = async (event, context) => {
 
     const data = JSON.stringify({
         username: event.request.userAttributes.email,
-        password: event.request.userAttributes.password,
         email: event.request.userAttributes.email
     });
 

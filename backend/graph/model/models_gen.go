@@ -2,20 +2,15 @@
 
 package model
 
-type Error struct {
-	Field   string `json:"field"`
-	Message string `json:"message"`
-}
-
 type LoginInput struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 type LoginPayload struct {
-	Token  *string  `json:"token,omitempty"`
-	User   *User    `json:"user,omitempty"`
-	Errors []*Error `json:"errors,omitempty"`
+	Token *string `json:"token,omitempty"`
+	User  *User   `json:"user,omitempty"`
+	Error *string `json:"error,omitempty"`
 }
 
 type Mutation struct {
@@ -25,9 +20,7 @@ type Query struct {
 }
 
 type User struct {
-	ID        string `json:"id"`
-	Username  string `json:"username"`
-	Email     string `json:"email"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt"`
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
 }

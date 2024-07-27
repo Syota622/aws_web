@@ -6,87 +6,77 @@ package graph
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"golang/auth"
 	"golang/graph/generated"
 	"golang/graph/model"
-	"golang/models"
 	"log"
 
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 )
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.LoginInput) (*model.LoginPayload, error) {
-	// バリデーション
-	var user models.User
-	if err := r.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &model.LoginPayload{
-				Errors: []*model.Error{{Field: "email", Message: "メールアドレスまたはパスワードが正しくありません"}},
-			}, nil
-		}
-		return nil, fmt.Errorf("ユーザー情報の取得に失敗しました: %v", err)
+	log.Printf("Login attempt for email: %s", input.Email)
+	log.Printf("Using Cognito Client ID: %s", auth.CognitoClientID)
+	log.Printf("Using Cognito User Pool ID: %s", auth.CognitoUserPoolID)
+
+	authInput := &cognitoidentityprovider.InitiateAuthInput{
+		AuthFlow: types.AuthFlowTypeUserPasswordAuth,
+		ClientId: aws.String(auth.CognitoClientID),
+		AuthParameters: map[string]string{
+			"USERNAME": input.Email,
+			"PASSWORD": input.Password,
+		},
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
-		log.Printf("Password mismatch for user: %s", input.Email)
+	authOutput, err := auth.CognitoClient.InitiateAuth(ctx, authInput)
+	if err != nil {
+		log.Printf("認証に失敗しました: %v", err)
 		return &model.LoginPayload{
-			Errors: []*model.Error{{Field: "password", Message: "メールアドレスまたはパスワードが正しくありません"}},
+			Error: aws.String(fmt.Sprintf("認証に失敗しました: %v", err)),
 		}, nil
 	}
 
-	// JWTトークンを生成
-	token := "generated_jwt_token"
-
-	log.Printf("ログイン成功: %s", input.Email)
-	return &model.LoginPayload{
-		Token: &token,
-		User: &model.User{
-			ID:        user.ID, // IDフィールドを追加
-			Username:  user.Username,
-			Email:     user.Email,
-			CreatedAt: user.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			UpdatedAt: user.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		},
-	}, nil
-}
-
-// Me is the resolver for the me field.
-func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
-	// TODO: 認証のロジックを実装する
-	// 例: コンテキストから現在のユーザーIDを取得
-	// userID := auth.GetUserIDFromContext(ctx)
-
-	// 仮の実装: ID 1 のユーザーを返す
-	return r.User(ctx, "1")
-}
-
-// User is the resolver for the user field.
-func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
-	var user models.User
-	if err := r.DB.First(&user, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("ユーザーが見つかりません: ID %s", id)
-		}
-		return nil, fmt.Errorf("ユーザー情報の取得に失敗しました: %v", err)
+	userInput := &cognitoidentityprovider.GetUserInput{
+		AccessToken: authOutput.AuthenticationResult.AccessToken,
 	}
 
-	return &model.User{
-		ID:        user.ID,
-		Username:  user.Username,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt: user.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	userOutput, err := auth.CognitoClient.GetUser(ctx, userInput)
+	if err != nil {
+		log.Printf("Failed to get user info: %v", err)
+		return &model.LoginPayload{
+			Error: aws.String(fmt.Sprintf("ユーザー情報の取得に失敗しました: %v", err)),
+		}, nil
+	}
+
+	var userID, email, username string
+	for _, attr := range userOutput.UserAttributes {
+		log.Printf("ユーザー属性: %s = %s", *attr.Name, *attr.Value)
+		switch *attr.Name {
+		case "sub":
+			userID = *attr.Value
+		case "email":
+			email = *attr.Value
+		case "preferred_username":
+			username = *attr.Value
+		}
+	}
+
+	log.Printf("Login successful for user: %s", email)
+	return &model.LoginPayload{
+		Token: aws.String(*authOutput.AuthenticationResult.IdToken),
+		User: &model.User{
+			ID:       userID,
+			Username: username,
+			Email:    email,
+		},
 	}, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
-
 type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }

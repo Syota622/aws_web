@@ -13,6 +13,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
+	"golang/auth"
 	"golang/handlers"
 	"golang/models"
 
@@ -46,6 +47,11 @@ func playgroundHandler() gin.HandlerFunc {
 }
 
 func main() {
+	// Cognitoクライアントの初期化
+	if err := auth.InitCognitoClient(); err != nil {
+		log.Fatalf("Cognitoクライアントの初期化に失敗しました: %v", err)
+	}
+
 	// 環境変数からJSON文字列を取得
 	dbConfigJSON := os.Getenv("DB_CONFIG")
 
@@ -64,8 +70,10 @@ func main() {
 		log.Fatalf("データベース接続に失敗しました: %v", err)
 	}
 
-	// ユーザーモデルをマイグレーション
-	db.AutoMigrate(&models.User{})
+	// 通常のAutoMigrate
+	if err := db.AutoMigrate(&models.User{}); err != nil {
+		log.Fatalf("AutoMigrateに失敗しました: %v", err)
+	}
 
 	// Ginのルーターを作成
 	r := gin.Default()

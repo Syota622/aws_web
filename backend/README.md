@@ -17,6 +17,8 @@ go get github.com/99designs/gqlgen@v0.17.49
 go get github.com/99designs/gqlgen/codegen/config@v0.17.49
 go get github.com/99designs/gqlgen/internal/imports@v0.17.49
 go get github.com/gin-contrib/cors
+go get github.com/aws/aws-sdk-go-v2/config 
+go get github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider
 
 # GraphQL
 1. graph/schema/*.graphql ファイルを更新
@@ -31,21 +33,20 @@ go get github.com/gin-contrib/cors
 # curl
 ```sh
 curl -X POST http://localhost:8080/signup \
-    -H "Content-Type: application/json" \
-    -H "X-Custom-Header: YourSecretValue111" \
-    -d '{
-        "username": "testuser100",
-        "password": "password100",
-        "email": "testuser100@example.com"
-    }'
+     -H "Content-Type: application/json" \
+     -H "X-Custom-Header: YourSecretValue" \
+     -d '{
+       "username": "testuser",
+       "email": "testuser@example.com"
+     }'
 
 curl -X POST https://api.mokokero.com/signup \
-    -H "Content-Type: application/json" \
-    -d '{
-        "username": "testuser",
-        "password": "password123",
-        "email": "testuser@example.com"
-    }'
+     -H "Content-Type: application/json" \
+     -H "X-Custom-Header: YourSecretValue" \
+     -d '{
+       "username": "testuser",
+       "email": "testuser@example.com"
+     }'
 
 curl -X POST http://localhost:8080/query \
 -H "Content-Type: application/json" \
@@ -61,29 +62,7 @@ curl -X POST http://localhost:8080/query \
 ```
 
 # graphql
-```graphql
-mutation Login($input: LoginInput!) {
-  login(input: $input) {
-    token
-    user {
-      id
-      username
-      email
-    }
-    errors {
-      field
-      message
-    }
-  }
-}
-# variables
-{
-  "input": {
-    "email": "testuser1@example.com",
-    "password": "password1"
-  }
-}
-```
+API仕様書を参照
 
 # 参考記事
 - ディレクトリ構成が非常に役にたつ

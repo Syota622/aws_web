@@ -2,13 +2,15 @@ package models
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type User struct {
-	ID        string `gorm:"primaryKey"` // uint から string に変更
-	Username  string `gorm:"unique;not null"`
-	Email     string `gorm:"unique;not null"`
-	Password  string `gorm:"not null"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        string         `gorm:"type:varchar(36);primaryKey"`
+	Username  string         `gorm:"type:varchar(255);uniqueIndex;not null"`
+	Email     string         `gorm:"type:varchar(255);uniqueIndex;not null"`
+	CreatedAt time.Time      `gorm:"type:datetime(3)"`
+	UpdatedAt time.Time      `gorm:"type:datetime(3)"`
+	DeletedAt gorm.DeletedAt `gorm:"type:datetime(3);index"`
 }
