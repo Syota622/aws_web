@@ -53,7 +53,7 @@ resource "aws_ecs_task_definition" "task_definition" {
       },
       {
         name      = "ENVIRONMENT",
-        valueFrom = "arn:aws:secretsmanager:ap-northeast-1:235484765172:secret:learn/ecs/environment/prod-awApY2"
+        valueFrom = aws_secretsmanager_secret.environment.id
       },
     ]
   }])
