@@ -1,8 +1,10 @@
 # docker compose
 docker-compose up -d
+docker-compose up --build -d
 
 # npm
 npm install @apollo/client graphql
+npm install lucide-react
 
 # ローカルによる検証
 APIは、localhostではなく、host.docker.internalを使う
