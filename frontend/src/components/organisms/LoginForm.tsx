@@ -16,11 +16,10 @@ const LoginForm: React.FC = () => {
       if (result.error) {
         setError(result.error);
       } else {
-        // Handle successful login (e.g., store token, redirect)
         console.log('ログインに成功しました', result);
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError('エラーが発生しました。もう一度お試しください。');
     }
   };
 
