@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const HomePage: React.FC = () => {
+  // authTokenを取得してログインしているかどうかを判定
   const { isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
