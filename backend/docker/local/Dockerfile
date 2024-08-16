@@ -29,6 +29,9 @@ COPY --from=builder /app/main .
 COPY connect_to_mysql.sh /app/connect_to_mysql.sh
 RUN chmod +x /app/connect_to_mysql.sh
 
+# migrateツールのインストール
+RUN go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
 # airのインストール
 RUN go install github.com/air-verse/air@latest
 CMD ["air"]
