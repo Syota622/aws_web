@@ -9,6 +9,7 @@ const HomePage: React.FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
+  // ログインしていない場合、ログインページにリダイレクト
   useEffect(() => {
     if (!isAuthenticated && !isLoading) {
       router.push('/login');
@@ -18,7 +19,7 @@ const HomePage: React.FC = () => {
   }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
-    return <div>Loading...</div>; // またはローディングスピナーなど
+    return <div>Loading...</div>;
   }
 
   if (!isAuthenticated) {
