@@ -1,20 +1,30 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';  // next/routerからnext/navigationに変更
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import LoginForm from '../organisms/LoginForm';
 import { useAuth } from '../../contexts/AuthContext';
 
 const LoginPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
-  // isAuthenticatedがtrueの場合、ホームページにリダイレクト
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isLoading) {
       router.push('/');
+    } else {
+      setIsLoading(false);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
+    return <div>Loading...</div>; // またはローディングスピナーなど
+  }
+
+  if (isAuthenticated) {
+    return null; // 認証済みの場合、コンテンツを表示しない
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

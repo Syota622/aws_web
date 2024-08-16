@@ -28,7 +28,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = (token: string) => {
     localStorage.setItem('authToken', token);
     setIsAuthenticated(true);
-    // window.location.href = '/'; // リダイレクト
     router.push('/');
   };
 
@@ -36,7 +35,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     localStorage.removeItem('authToken');
     setIsAuthenticated(false);
-    // window.location.href = '/login';
     router.push('/login');
   };
 
