@@ -1,17 +1,25 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const HomePage: React.FC = () => {
-  // authTokenを取得してログインしているかどうかを判定
   const { isAuthenticated, logout } = useAuth();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      window.location.href = '/login';
+    if (!isAuthenticated && !isLoading) {
+      router.push('/login');
+    } else {
+      setIsLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
+    return <div>Loading...</div>; // またはローディングスピナーなど
+  }
 
   if (!isAuthenticated) {
     return null;

@@ -12,6 +12,7 @@ const LoginForm: React.FC = () => {
   const [error, setError] = useState('');
   const { login } = useAuth();
 
+  // フォームの送信処理
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {

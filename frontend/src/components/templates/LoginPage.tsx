@@ -9,6 +9,7 @@ const LoginPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
 
+  // isAuthenticatedがtrueの場合、ホームページにリダイレクト
   useEffect(() => {
     if (isAuthenticated) {
       router.push('/');

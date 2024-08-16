@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 // AuthContextTypeインターフェースは、認証コンテキストの形を定義
 interface AuthContextType {
@@ -9,31 +10,34 @@ interface AuthContextType {
   logout: () => void;              // ログアウト処理を行う関数
 }
 
-// undefinedは、コンテキストが初期化される前に使用された場合にエラーをスローするためのデフォルト値
+// AuthContextType か undefined の型を持ち、初期値が undefined であるコンテキストを作成
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // 認証状態を管理し、子コンポーネントに提供
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
 
   // コンポーネントがマウントされたときに実行される副作用
   useEffect(() => {
     const token = localStorage.getItem('authToken');
-    setIsAuthenticated(!!token);
+    setIsAuthenticated(!!token); // !!は、値を真偽値に変換するために使用
   }, []); // 空の依存配列は、この効果がコンポーネントのマウント時にのみ実行されることを意味
 
   // ログイン関数を定義
   const login = (token: string) => {
     localStorage.setItem('authToken', token);
     setIsAuthenticated(true);
-    window.location.href = '/';
+    // window.location.href = '/'; // リダイレクト
+    router.push('/');
   };
 
   // ログアウト関数を定義
   const logout = () => {
     localStorage.removeItem('authToken');
     setIsAuthenticated(false);
-    window.location.href = '/login';
+    // window.location.href = '/login';
+    router.push('/login');
   };
 
   // AuthContext.Providerを返し、値としてisAuthenticated, login, logoutを提供
