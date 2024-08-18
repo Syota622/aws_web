@@ -17,29 +17,29 @@ migrate-up:
 
 migrate-down:
 	@echo "migrate down"
-	@docker compose run --rm web sh -c "migrate -path /app/db/migrations  \
-	-source file://${MIGRATE_PATH}  \
-	-database 'mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST_DOCKER}:${MYSQL_PORT}/${MYSQL_DB}?sslmode=disable' down $(VERSION)"
+	@docker compose run --rm web sh -c "migrate -path $(MIGRATE_PATH) \
+		-database 'mysql://$(MYSQL_USER):$(MYSQL_PASSWORD)@tcp($(MYSQL_HOST):$(MYSQL_PORT))/$(MYSQL_DB)' \
+		-verbose down $(VERSION)"
 
 migrate-version:
 	@echo "migrate version"
-	@docker compose run --rm web sh -c "migrate -path /app/db/migrations  \
-	-source file://${MIGRATE_PATH}  \
-	-database 'mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST_DOCKER}:${MYSQL_PORT}/${MYSQL_DB}?sslmode=disable' version"
+	@docker compose run --rm web sh -c "migrate -path $(MIGRATE_PATH) \
+		-database 'mysql://$(MYSQL_USER):$(MYSQL_PASSWORD)@tcp($(MYSQL_HOST):$(MYSQL_PORT))/$(MYSQL_DB)' \
+		version"
 
 migrate-force:
 	@echo "migrate force"
-	@docker compose run --rm web sh -c "migrate -path /app/db/migrations  \
-	-source file://${MIGRATE_PATH}  \
-	-database 'mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST_DOCKER}:${MYSQL_PORT}/${MYSQL_DB}?sslmode=disable' force $(VERSION)"
+	@docker compose run --rm web sh -c "migrate -path $(MIGRATE_PATH) \
+		-database 'mysql://$(MYSQL_USER):$(MYSQL_PASSWORD)@tcp($(MYSQL_HOST):$(MYSQL_PORT))/$(MYSQL_DB)' \
+		force $(VERSION)"
 
-# マイグレーションの状態確認
 migrate-status:
-	@echo "migrate force"
-	@docker compose run --rm web sh -c "migrate -path /app/db/migrations  \
-	-source file://${MIGRATE_PATH}  \
-	-database 'mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST_DOCKER}:${MYSQL_PORT}/${MYSQL_DB}?sslmode=disable' status"
+	@echo "migrate status"
+	@docker compose run --rm web sh -c "migrate -path $(MIGRATE_PATH) \
+		-database 'mysql://$(MYSQL_USER):$(MYSQL_PASSWORD)@tcp($(MYSQL_HOST):$(MYSQL_PORT))/$(MYSQL_DB)' \
+		status"
 
 # -ext	マイグレーションファイルの拡張子
 # -dir	マイグレーションファイルを作成する場所
 # -seq	マイグレーションファイルの名前
+# -path	マイグレーションファイルのディレクトリ
