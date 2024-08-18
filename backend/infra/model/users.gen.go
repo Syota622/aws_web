@@ -15,12 +15,12 @@ const TableNameUser = "users"
 // User mapped from table <users>
 type User struct {
 	ID        string         `gorm:"column:id;primaryKey" json:"id"`
+	CognitoID string         `gorm:"column:cognito_id;not null" json:"cognito_id"`
 	Username  string         `gorm:"column:username;not null" json:"username"`
 	Email     string         `gorm:"column:email;not null" json:"email"`
-	CreatedAt time.Time      `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt time.Time      `gorm:"column:updated_at" json:"updated_at"`
+	CreatedAt time.Time      `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP(3)" json:"created_at"`
+	UpdatedAt time.Time      `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP(3)" json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at" json:"deleted_at"`
-	Password  string         `gorm:"column:password;not null" json:"password"`
 }
 
 // TableName User's table name
