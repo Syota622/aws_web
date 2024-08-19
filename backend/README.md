@@ -20,6 +20,17 @@ go get github.com/gin-contrib/cors
 go get github.com/aws/aws-sdk-go-v2/config 
 go get github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider
 
+# Makefile
+## マイグレーションファイルの作成
+make migrate-create NAME={ TABLE_NAME }
+make migrate-create NAME=create_users2
+## マイグレーションの実行(VERSIONを指定するとそのバージョンまで実行する)
+make migrate-up
+make migrate-up VERSION="1"
+## マイグレーションのロールバック(VERSIONを指定するとそのバージョンまでロールバックする)
+make migrate-down
+make migrate-down VERSION=1
+
 # gen（gormによるスキーマの自動生成）
 export DB_CONFIG='{"DB_HOST":"localhost","DB_NAME":"myapp","DB_PASSWORD":"password","DB_PORT":"3306","DB_USER":"root"}'
 go run docker/local/generate_model.go
