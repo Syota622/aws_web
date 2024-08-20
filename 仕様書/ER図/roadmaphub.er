@@ -1,3 +1,5 @@
+# Indexes are added as comments since erd tool doesn't directly support index definitions
+
 [users]
   *id {label: "bigint, not null"}
   name {label: "varchar, not null, uniq"}
@@ -9,6 +11,9 @@
   delete_flag {label: "boolean, not null, default: false"}
   created_at {label: "datetime, not null"}
   updated_at {label: "datetime, not null"}
+# Indexes:
+# - idx_users_email ON (email)
+# - idx_users_cognito_id ON (cognito_id)
 
 [roadmaps]
   *id {label: "bigint, not null"}
@@ -17,6 +22,8 @@
   description {label: "text, null"}
   created_at {label: "datetime, not null"}
   updated_at {label: "datetime, not null"}
+# Indexes:
+# - idx_roadmaps_user_id ON (user_id)
 
 [steps]
   *id {label: "bigint, not null"}
@@ -27,12 +34,17 @@
   order {label: "int, not null"}
   created_at {label: "datetime, not null"}
   updated_at {label: "datetime, not null"}
+# Indexes:
+# - idx_steps_roadmap_id_order ON (roadmap_id, order)
 
 [likes]
   *id {label: "bigint, not null"}
   user_id {label: "bigint, not null, FK(users)"}
   roadmap_id {label: "bigint, not null, FK(roadmaps)"}
   created_at {label: "datetime, not null"}
+# Indexes:
+# - idx_likes_user_id ON (user_id)
+# - idx_likes_roadmap_id ON (roadmap_id)
 
 users 1--* roadmaps
 users 1--* likes
