@@ -36,14 +36,6 @@
   created_at {label: "datetime, not null"}
   updated_at {label: "datetime, not null"}
 
-[comments]
-  *id {label: "bigint, not null"}
-  user_id {label: "bigint, not null, FK(users)"}
-  roadmap_id {label: "bigint, not null, FK(roadmaps)"}
-  content {label: "text, not null"}
-  created_at {label: "datetime, not null"}
-  updated_at {label: "datetime, not null"}
-
 [likes]
   *id {label: "bigint, not null"}
   user_id {label: "bigint, not null, FK(users)"}
@@ -51,9 +43,7 @@
   created_at {label: "datetime, not null"}
 
 users 1--* roadmaps
-users 1--* comments
 users 1--* likes
 roadmaps 1--* steps
-roadmaps 1--* comments
 roadmaps 1--* likes
 steps 1--* resources
