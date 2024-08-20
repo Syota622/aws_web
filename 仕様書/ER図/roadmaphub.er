@@ -23,16 +23,8 @@
   roadmap_id {label: "bigint, not null, FK(roadmaps)"}
   title {label: "varchar, not null"}
   description {label: "text, null"}
+  url {label: "varchar, null"}
   order {label: "int, not null"}
-  created_at {label: "datetime, not null"}
-  updated_at {label: "datetime, not null"}
-
-[resources]
-  *id {label: "bigint, not null"}
-  step_id {label: "bigint, not null, FK(steps)"}
-  title {label: "varchar, not null"}
-  url {label: "varchar, not null"}
-  type {label: "varchar, not null"}
   created_at {label: "datetime, not null"}
   updated_at {label: "datetime, not null"}
 
@@ -46,4 +38,3 @@ users 1--* roadmaps
 users 1--* likes
 roadmaps 1--* steps
 roadmaps 1--* likes
-steps 1--* resources
