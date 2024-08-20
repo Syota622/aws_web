@@ -1,20 +1,59 @@
 [users]
   *id {label: "bigint, not null"}
-  full_name {label: "varchar, null"}
-  email {label: "varchar, not null, uniq" }
-  created_at { label: "datatime, not null"}
-  updated_at { label: "datatime, not null"}
+  name {label: "varchar, not null, uniq"}
+  email {label: "varchar, not null, uniq"}
+  cognito_id {label: "varchar, not null, uniq"}
+  birthdate {label: "date, null"}
+  description {label: "text, null"}
+  logo_url {label: "varchar, null"}
+  delete_flag {label: "boolean, not null, default: false"}
+  created_at {label: "datetime, not null"}
+  updated_at {label: "datetime, not null"}
 
-[items] {bgcolor: "#d0e0d0"}
+[roadmaps]
   *id {label: "bigint, not null"}
   user_id {label: "bigint, not null, FK(users)"}
-  name {label: "varchar, not null"}
-  created_at { label: "datatime, not null"}
-  updated_at { label: "datatime, not null"}
+  title {label: "varchar, not null"}
+  description {label: "text, null"}
+  created_at {label: "datetime, not null"}
+  updated_at {label: "datetime, not null"}
 
-# Cardinality    Syntax
-# 0 or 1         ?
-# exactly 1      1
-# 0 or more      *
-# 1 or more      +
-users *--1 `items`
+[steps]
+  *id {label: "bigint, not null"}
+  roadmap_id {label: "bigint, not null, FK(roadmaps)"}
+  title {label: "varchar, not null"}
+  description {label: "text, null"}
+  order {label: "int, not null"}
+  created_at {label: "datetime, not null"}
+  updated_at {label: "datetime, not null"}
+
+[resources]
+  *id {label: "bigint, not null"}
+  step_id {label: "bigint, not null, FK(steps)"}
+  title {label: "varchar, not null"}
+  url {label: "varchar, not null"}
+  type {label: "varchar, not null"}
+  created_at {label: "datetime, not null"}
+  updated_at {label: "datetime, not null"}
+
+[comments]
+  *id {label: "bigint, not null"}
+  user_id {label: "bigint, not null, FK(users)"}
+  roadmap_id {label: "bigint, not null, FK(roadmaps)"}
+  content {label: "text, not null"}
+  created_at {label: "datetime, not null"}
+  updated_at {label: "datetime, not null"}
+
+[likes]
+  *id {label: "bigint, not null"}
+  user_id {label: "bigint, not null, FK(users)"}
+  roadmap_id {label: "bigint, not null, FK(roadmaps)"}
+  created_at {label: "datetime, not null"}
+
+users 1--* roadmaps
+users 1--* comments
+users 1--* likes
+roadmaps 1--* steps
+roadmaps 1--* comments
+roadmaps 1--* likes
+steps 1--* resources
