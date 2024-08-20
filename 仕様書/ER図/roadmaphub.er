@@ -44,6 +44,7 @@
   user_id {label: "bigint, not null, FK(users)"}
   roadmap_id {label: "bigint, not null, FK(roadmaps)"}
   created_at {label: "datetime, not null"}
+  updated_at {label: "datetime, not null"}
 # Indexes:
 # - idx_likes_user_id ON (user_id)
 # - idx_likes_roadmap_id ON (roadmap_id)
@@ -53,6 +54,7 @@
   follower_id {label: "bigint, not null, FK(users)"}
   followed_id {label: "bigint, not null, FK(users)"}
   created_at {label: "datetime, not null"}
+  updated_at {label: "datetime, not null"}
 # Indexes:
 # - idx_follows_follower_id ON (follower_id)
 # - idx_follows_followed_id ON (followed_id)
