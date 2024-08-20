@@ -20,10 +20,12 @@
   user_id {label: "bigint, not null, FK(users)"}
   title {label: "varchar, not null"}
   description {label: "text, null"}
+  category {label: "varchar, not null"}
   created_at {label: "datetime, not null"}
   updated_at {label: "datetime, not null"}
 # Indexes:
 # - idx_roadmaps_user_id ON (user_id)
+# - idx_roadmaps_category ON (category)
 
 [steps]
   *id {label: "bigint, not null"}
@@ -46,7 +48,19 @@
 # - idx_likes_user_id ON (user_id)
 # - idx_likes_roadmap_id ON (roadmap_id)
 
+[follows]
+  *id {label: "bigint, not null"}
+  follower_id {label: "bigint, not null, FK(users)"}
+  followed_id {label: "bigint, not null, FK(users)"}
+  created_at {label: "datetime, not null"}
+# Indexes:
+# - idx_follows_follower_id ON (follower_id)
+# - idx_follows_followed_id ON (followed_id)
+# - idx_follows_unique ON (follower_id, followed_id)
+
 users 1--* roadmaps
 users 1--* likes
+users 1--* follows {label: "follower"}
+users 1--* follows {label: "followed"}
 roadmaps 1--* steps
 roadmaps 1--* likes
