@@ -20,12 +20,10 @@
   user_id {label: "bigint, not null, FK(users)"}
   title {label: "varchar, not null"}
   description {label: "text, null"}
-  category {label: "varchar, not null"}
   created_at {label: "datetime, not null"}
   updated_at {label: "datetime, not null"}
 # Indexes:
 # - idx_roadmaps_user_id ON (user_id)
-# - idx_roadmaps_category ON (category)
 
 [steps]
   *id {label: "bigint, not null"}
@@ -59,9 +57,44 @@
 # - idx_follows_followed_id ON (followed_id)
 # - idx_follows_unique ON (follower_id, followed_id)
 
+[reviews]
+  *id {label: "bigint, not null"}
+  user_id {label: "bigint, not null, FK(users)"}
+  roadmap_id {label: "bigint, not null, FK(roadmaps)"}
+  rating {label: "int, not null"}
+  comment {label: "text, null"}
+  created_at {label: "datetime, not null"}
+  updated_at {label: "datetime, not null"}
+# Indexes:
+# - idx_reviews_user_id ON (user_id)
+# - idx_reviews_roadmap_id ON (roadmap_id)
+
+[tags]
+  *id {label: "bigint, not null"}
+  name {label: "varchar, not null, uniq"}
+  created_at {label: "datetime, not null"}
+  updated_at {label: "datetime, not null"}
+# Indexes:
+# - idx_tags_name ON (name)
+
+[roadmap_tags]
+  *id {label: "bigint, not null"}
+  roadmap_id {label: "bigint, not null, FK(roadmaps)"}
+  tag_id {label: "bigint, not null, FK(tags)"}
+  created_at {label: "datetime, not null"}
+  updated_at {label: "datetime, not null"}
+# Indexes:
+# - idx_roadmap_tags_roadmap_id ON (roadmap_id)
+# - idx_roadmap_tags_tag_id ON (tag_id)
+# - idx_roadmap_tags_unique ON (roadmap_id, tag_id)
+
 users 1--* roadmaps
 users 1--* likes
 users 1--* follows {label: "follower"}
 users 1--* follows {label: "followed"}
+users 1--* reviews
 roadmaps 1--* steps
 roadmaps 1--* likes
+roadmaps 1--* reviews
+roadmaps 1--* roadmap_tags
+tags 1--* roadmap_tags
