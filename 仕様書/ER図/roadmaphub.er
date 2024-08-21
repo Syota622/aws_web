@@ -32,7 +32,6 @@
   roadmap_id {label: "bigint, not null, FK(roadmaps)"}
   title {label: "varchar, not null"}
   description {label: "text, null"}
-  url {label: "varchar, null"}
   order {label: "int, not null"}
   created_at {label: "datetime, not null"}
   updated_at {label: "datetime, not null"}
