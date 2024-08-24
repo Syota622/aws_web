@@ -26,7 +26,7 @@ type DBConfig struct {
 
 func handler(ctx context.Context) error {
 	// Secrets Managerから接続情報を取得
-	secretID := os.Getenv("SECRETS_MANAGER_SECRET_ID")
+	secretID := os.Getenv("SECRETS_MANAGER_SECRET_ARN")
 	dbConfig, err := getDBConfigFromSecretsManager(secretID)
 	if err != nil {
 		return fmt.Errorf("error getting DB config from Secrets Manager: %v", err)
