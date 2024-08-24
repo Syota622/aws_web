@@ -67,7 +67,7 @@ resource "aws_iam_role_policy" "aurora_scheduler" {
 
 # Aurora8 Instance Stop Scheduler
 resource "aws_scheduler_schedule" "aurora8_aurora_stop" {
-  name = "${var.pj}-aurora-stop-scheduler-${var.env}"
+  name        = "${var.pj}-aurora-stop-scheduler-${var.env}"
   description = "Stop Aurora Instance on Weekdays at 21:55 JST"
 
   schedule_expression = "cron(55 12 ? * MON-FRI *)"

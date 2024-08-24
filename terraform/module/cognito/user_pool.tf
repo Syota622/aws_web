@@ -53,9 +53,9 @@ resource "aws_cognito_user_pool_client" "user_pool_client" {
   user_pool_id = aws_cognito_user_pool.user_pool.id
 
   explicit_auth_flows = [
-    "ALLOW_USER_PASSWORD_AUTH",       # ユーザーパスワード認証を許可
-    "ALLOW_REFRESH_TOKEN_AUTH",       # リフレッシュトークン認証を許可
-    "ALLOW_USER_SRP_AUTH"             # ユーザーSRP認証を許可
+    "ALLOW_USER_PASSWORD_AUTH", # ユーザーパスワード認証を許可
+    "ALLOW_REFRESH_TOKEN_AUTH", # リフレッシュトークン認証を許可
+    "ALLOW_USER_SRP_AUTH"       # ユーザーSRP認証を許可
   ]
 
   # クライアントがユーザー名とメールアドレスの両方を読み取れるようにする
@@ -89,7 +89,7 @@ resource "aws_cognito_user_pool_domain" "user_pool_domain" {
 ### Lambda ###
 # IAM role
 resource "aws_iam_role" "user_signup_lambda_role" {
-  name  = "${var.pj}-user-signup-lambda-role-${var.env}"
+  name = "${var.pj}-user-signup-lambda-role-${var.env}"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -108,8 +108,8 @@ resource "aws_iam_role" "user_signup_lambda_role" {
 
 # IAM Policy
 resource "aws_iam_role_policy" "user_signup_lambda_policy" {
-  name  = "${var.pj}-user-signup-lambda-policy-${var.env}"
-  role  = aws_iam_role.user_signup_lambda_role.id
+  name = "${var.pj}-user-signup-lambda-policy-${var.env}"
+  role = aws_iam_role.user_signup_lambda_role.id
 
   policy = jsonencode({
     Version = "2012-10-17",

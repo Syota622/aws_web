@@ -48,9 +48,9 @@ module "backend" {
   secrets_manager_arn = module.database.secrets_manager_arn
 
   # cognito
-  basic_user_pool_arn = module.cognito.basic_user_pool_arn
+  basic_user_pool_arn            = module.cognito.basic_user_pool_arn
   basic_user_pool_client_back_id = module.cognito.basic_user_pool_client_back_id
-  basic_user_pool_domain = module.cognito.basic_user_pool_domain
+  basic_user_pool_domain         = module.cognito.basic_user_pool_domain
 }
 
 # ## frontend ###
@@ -78,7 +78,7 @@ module "cognito" {
   env    = var.env
 
   # backend
-  alb_dns     = module.backend.alb_dns
+  alb_dns = module.backend.alb_dns
 }
 
 ## lambda ###
