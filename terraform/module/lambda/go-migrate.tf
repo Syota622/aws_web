@@ -20,8 +20,27 @@ resource "aws_lambda_function" "migration_lambda" {
 
   environment {
     variables = {
-      SECRETS_MANAGER_SECRET_ID = var.secrets_manager_arn
+      SECRETS_MANAGER_SECRET_ARN = var.secrets_manager_arn
     }
+  }
+
+  vpc_config {
+    subnet_ids         = [var.private_subnet_c_ids, var.private_subnet_d_ids]
+    security_group_ids = [aws_security_group.lambda_migrate_sg.id]
+  }
+}
+
+# Lambda用のセキュリティグループ
+resource "aws_security_group" "lambda_migrate_sg" {
+  name        = "${var.pj}-db-migration-lambda-sg-${var.env}"
+  description = "Security group for DB migration Lambda function"
+  vpc_id      = var.vpc_id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -66,6 +85,15 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "secretsmanager:GetSecretValue"
         ]
         Resource = var.secrets_manager_arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateNetworkInterface",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DeleteNetworkInterface"
+        ]
+        Resource = "*"
       }
     ]
   })

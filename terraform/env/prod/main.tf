@@ -25,6 +25,9 @@ module "database" {
 
   # backend
   ecs_sg_id = module.backend.ecs_sg_id
+
+  # lambda
+  lambda_migrate_sg_id = module.lambda.lambda_migrate_sg_id
 }
 
 ## backend ###
