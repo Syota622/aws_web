@@ -72,7 +72,9 @@ func main() {
 	g.UseDB(db)
 
 	// モデル生成
-	g.GenerateAllTable()
+	if err := g.GenerateAllTable(); err != nil {
+		log.Fatalf("モデル生成に失敗しました: %v", err)
+	}
 
 	// コード生成
 	g.Execute()
