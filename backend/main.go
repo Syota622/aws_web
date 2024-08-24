@@ -15,7 +15,6 @@ import (
 
 	"golang/auth"
 	"golang/handlers"
-	"golang/models"
 
 	"golang/graph/generated"
 	graph "golang/graph/resolver"
@@ -68,11 +67,6 @@ func main() {
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("データベース接続に失敗しました: %v", err)
-	}
-
-	// 通常のAutoMigrate
-	if err := db.AutoMigrate(&models.User{}); err != nil {
-		log.Fatalf("AutoMigrateに失敗しました: %v", err)
 	}
 
 	// Ginのルーターを作成

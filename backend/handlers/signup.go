@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"golang/models"
+	"golang/infra/model"
 
 	"github.com/google/uuid"
 )
@@ -14,8 +14,9 @@ import (
 // SignUpHandler はユーザー登録を行うハンドラ
 func SignUpHandler(c *gin.Context, db *gorm.DB) {
 	var input struct {
-		Username string `json:"username" binding:"required"`
-		Email    string `json:"email" binding:"required,email"`
+		Username  string `json:"username" binding:"required"`
+		Email     string `json:"email" binding:"required,email"`
+		CognitoID string `json:"cognito_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -24,10 +25,11 @@ func SignUpHandler(c *gin.Context, db *gorm.DB) {
 	}
 
 	// ユーザーの作成
-	user := models.User{
-		ID:       uuid.New().String(),
-		Username: input.Username,
-		Email:    input.Email,
+	user := model.User{
+		ID:        uuid.New().String(),
+		Username:  input.Username,
+		Email:     input.Email,
+		CognitoID: input.CognitoID,
 	}
 
 	if err := db.Create(&user).Error; err != nil {
