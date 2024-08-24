@@ -24,7 +24,9 @@ type DBConfig struct {
 func main() {
 	// 環境変数からJSON文字列を取得
 	dbConfigJSON := os.Getenv("DB_CONFIG")
-	log.Printf("DB_CONFIG: %s", dbConfigJSON)
+	if dbConfigJSON == "" {
+		log.Fatal("環境変数 DB_CONFIG が設定されていません")
+	}
 
 	// JSON文字列をDBConfig構造体にパース
 	var dbConfig DBConfig
