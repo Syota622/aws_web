@@ -53,8 +53,13 @@ ECRのイメージを更新した後、Lambda関数も更新する必要があ�
    aws lambda update-function-code --function-name learn-db-migration-lambda-prod --image-uri 123456789012.dkr.ecr.ap-northeast-1.amazonaws.com/learn-db-migration-lambda-prod:latest
    ```
 
-注意：
-- AWSアカウントID（123456789012）は実際のアカウントIDに置き換えてください。
-- リージョン（ap-northeast-1）は必要に応じて変更してください。
+## 3. ローカルでのテスト
+```
+   docker run --rm -p 9000:8080 learn-db-migration-lambda-prod:latest
+```
 
-これらの手順に従うことで、DB マイグレーションLambda機能を正しくビルドし、デプロイすることができます。
+```
+   curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{}'
+```
+
+[LambdaのDocker構築やローカルテスト:参考資料](https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/go-image.html#go-image-provided)
