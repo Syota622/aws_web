@@ -25,7 +25,7 @@ resource "aws_lambda_function" "migration_lambda" {
   }
 
   vpc_config {
-    subnet_ids         = [var.private_subnet_c_ids, var.private_subnet_d_ids]
+    subnet_ids         = [var.public_subnet_c_ids, var.public_subnet_d_ids]
     security_group_ids = [aws_security_group.lambda_migrate_sg.id]
   }
 }
