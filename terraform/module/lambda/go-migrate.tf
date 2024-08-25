@@ -24,11 +24,7 @@ resource "aws_lambda_function" "migration_lambda" {
 
   environment {
     variables = {
-      DB_HOST     = local.db_secret["DB_HOST"]
-      DB_PORT     = local.db_secret["DB_PORT"]
-      DB_NAME     = local.db_secret["DB_NAME"]
-      DB_USER     = local.db_secret["DB_USER"]
-      DB_PASSWORD = local.db_secret["DB_PASSWORD"]
+      SECRETS_MANAGER_SECRET_ARN = var.secrets_manager_arn
     }
   }
 
@@ -98,6 +94,13 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "logs:PutLogEvents"
         ]
         Resource = "arn:aws:logs:*:*:*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = var.secrets_manager_arn
       },
       {
         Effect = "Allow"

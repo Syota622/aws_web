@@ -2,41 +2,58 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
+type DBConfig struct {
+	Host     string `json:"DB_HOST"`
+	Name     string `json:"DB_NAME"`
+	Password string `json:"DB_PASSWORD"`
+	Port     string `json:"DB_PORT"`
+	User     string `json:"DB_USER"`
+}
+
 func handler(ctx context.Context) error {
 	log.Println("Starting database migration handler")
 
-	// 環境変数から接続情報を取得
+	// SecretsManagerから接続情報を取得
+	secretID := os.Getenv("SECRETS_MANAGER_SECRET_ARN")
+	dbConfig, err := getDBConfigFromSecretsManager(secretID)
+	if err != nil {
+		log.Printf("Error getting DB config from Secrets Manager: %v", err)
+		return fmt.Errorf("error getting DB config from Secrets Manager: %v", err)
+	}
+
+	// データベース接続URLの構築
 	dbURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"))
+		dbConfig.User,
+		dbConfig.Password,
+		dbConfig.Host,
+		dbConfig.Port,
+		dbConfig.Name)
 
 	log.Printf("Database connection URL: %s://*****@%s:%s/%s",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"))
-
-	// マイグレーションファイルの一覧を取得してログに出力
-	migrationPath := "file:///var/task/migrations"
-	logMigrationFiles(migrationPath)
+		dbConfig.User,
+		dbConfig.Host,
+		dbConfig.Port,
+		dbConfig.Name)
 
 	// マイグレーションインスタンスの作成
 	log.Println("Creating migration instance")
-	m, err := migrate.New(migrationPath, fmt.Sprintf("mysql://%s", dbURL))
+	m, err := migrate.New(
+		"file:///var/task/migrations",
+		fmt.Sprintf("mysql://%s", dbURL))
 	if err != nil {
 		log.Printf("Error creating migrate instance: %v", err)
 		return fmt.Errorf("error creating migrate instance: %v", err)
@@ -74,19 +91,33 @@ func handler(ctx context.Context) error {
 	return nil
 }
 
-func logMigrationFiles(path string) {
-	// file:/// プレフィックスを削除
-	cleanPath := path[7:]
-	files, err := filepath.Glob(filepath.Join(cleanPath, "*.sql"))
+// SecretsManagerから接続情報を取得
+func getDBConfigFromSecretsManager(secretID string) (*DBConfig, error) {
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String("ap-northeast-1"), // リージョンを適切に設定してください
+	})
 	if err != nil {
-		log.Printf("Error listing migration files: %v", err)
-		return
+		return nil, fmt.Errorf("error creating AWS session: %v", err)
 	}
 
-	log.Println("Available migration files:")
-	for _, f := range files {
-		log.Printf("- %s", filepath.Base(f))
+	svc := secretsmanager.New(sess)
+
+	input := &secretsmanager.GetSecretValueInput{
+		SecretId: aws.String(secretID),
 	}
+
+	result, err := svc.GetSecretValue(input)
+	if err != nil {
+		return nil, err
+	}
+
+	var dbConfig DBConfig
+	err = json.Unmarshal([]byte(*result.SecretString), &dbConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dbConfig, nil
 }
 
 func main() {
