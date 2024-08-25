@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -13,35 +12,35 @@ import (
 )
 
 func handler(ctx context.Context) error {
-	log.Println("Starting database migration")
+	// デバッグ情報を文字列として構築
+	debugInfo := fmt.Sprintf("DB_USER: %s\nDB_HOST: %s\nDB_PORT: %s\nDB_NAME: %s\n",
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"))
 
 	// 環境変数から接続情報を取得
-	dbURL := fmt.Sprintf("mysql://%s:%s@tcp(%s:%s)/%s",
-		os.Getenv("DB_USERNAME"),
+	dbURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
+		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
 		os.Getenv("DB_NAME"))
 
-	log.Println("Creating migration instance")
 	// マイグレーションインスタンスの作成
 	m, err := migrate.New(
 		"file:///var/task/migrations",
-		dbURL)
+		fmt.Sprintf("mysql://%s", dbURL))
 	if err != nil {
-		log.Printf("Error creating migrate instance: %v", err)
-		return fmt.Errorf("error creating migrate instance: %v", err)
+		return fmt.Errorf("error creating migrate instance: %v\nDebug Info:\n%s", err, debugInfo)
 	}
 
-	log.Println("Running database migration")
 	// マイグレーションの実行（最新バージョンまで）
 	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {
-		log.Printf("Error migrating database: %v", err)
 		return fmt.Errorf("error migrating database: %v", err)
 	}
 
-	log.Println("Database migration completed successfully")
 	return nil
 }
 
