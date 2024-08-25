@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/golang-migrate/migrate/v4"
@@ -29,11 +30,13 @@ func handler(ctx context.Context) error {
 		os.Getenv("DB_PORT"),
 		os.Getenv("DB_NAME"))
 
+	// マイグレーションファイルの一覧を取得してログに出力
+	migrationPath := "file:///var/task/migrations"
+	logMigrationFiles(migrationPath)
+
 	// マイグレーションインスタンスの作成
 	log.Println("Creating migration instance")
-	m, err := migrate.New(
-		"file:///var/task/migrations",
-		fmt.Sprintf("mysql://%s", dbURL))
+	m, err := migrate.New(migrationPath, fmt.Sprintf("mysql://%s", dbURL))
 	if err != nil {
 		log.Printf("Error creating migrate instance: %v", err)
 		return fmt.Errorf("error creating migrate instance: %v", err)
@@ -41,7 +44,7 @@ func handler(ctx context.Context) error {
 
 	// 現在のバージョンを取得
 	version, dirty, err := m.Version()
-	if err != nil {
+	if err != nil && err != migrate.ErrNilVersion {
 		log.Printf("Error getting current migration version: %v", err)
 	} else {
 		log.Printf("Current migration version: %d, Dirty: %v", version, dirty)
@@ -69,6 +72,21 @@ func handler(ctx context.Context) error {
 
 	log.Println("Database migration completed successfully")
 	return nil
+}
+
+func logMigrationFiles(path string) {
+	// file:/// プレフィックスを削除
+	cleanPath := path[7:]
+	files, err := filepath.Glob(filepath.Join(cleanPath, "*.sql"))
+	if err != nil {
+		log.Printf("Error listing migration files: %v", err)
+		return
+	}
+
+	log.Println("Available migration files:")
+	for _, f := range files {
+		log.Printf("- %s", filepath.Base(f))
+	}
 }
 
 func main() {
