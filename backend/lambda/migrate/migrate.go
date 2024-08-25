@@ -12,13 +12,6 @@ import (
 )
 
 func handler(ctx context.Context) error {
-	// デバッグ情報を文字列として構築
-	debugInfo := fmt.Sprintf("DB_USER: %s\nDB_HOST: %s\nDB_PORT: %s\nDB_NAME: %s\n",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"))
-
 	// 環境変数から接続情報を取得
 	dbURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
 		os.Getenv("DB_USER"),
@@ -32,7 +25,7 @@ func handler(ctx context.Context) error {
 		"file:///var/task/migrations",
 		fmt.Sprintf("mysql://%s", dbURL))
 	if err != nil {
-		return fmt.Errorf("error creating migrate instance: %v\nDebug Info:\n%s", err, debugInfo)
+		return fmt.Errorf("error creating migrate instance: %v", err)
 	}
 
 	// マイグレーションの実行（最新バージョンまで）
