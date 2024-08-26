@@ -1,0 +1,42 @@
+# メインワークフローの定義
+name: Main Workflow
+
+# ワークフローのトリガー条件を設定
+on:
+  push:
+    branches:
+    - "develop"
+    - "main"
+    - "feature/**"
+    paths:
+      - '.github/workflows/**'
+      - 'backend/**'
+      - 'db/migrations/**'
+      - 'lambda/migrate/**'
+
+# 環境変数の設定
+env:
+  # ブランチに応じて環境変数を動的に設定
+  ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+  WORKFLOW_BRANCH: ${{ github.ref == 'refs/heads/main' && 'main' || 'develop' }}
+
+# ジョブの定義
+jobs:
+  # 変更のチェックを行うジョブ
+  check-changes:
+    uses: ./.github/workflows/common-config.yml@${{ env.ENV_VAR }}
+    with:
+      job: check-changes
+
+  # Lambdaのデプロイを行うジョブ
+  deploy-lambda:
+    needs: check-changes
+    if: needs.check-changes.outputs.lambda_changed == 'true'
+    uses: ./.github/workflows/deploy-lambda.yml@${{ env.ENV_VAR }}
+    secrets: inherit
+
+  # バックエンドのデプロイを行うジョブ
+  deploy-backend:
+    needs: [check-changes, deploy-lambda]
+    uses: ./.github/workflows/deploy-backend.yml@${{ env.ENV_VAR }}
+    secrets: inherit

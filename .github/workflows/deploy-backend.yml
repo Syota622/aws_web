@@ -1,0 +1,64 @@
+# バックエンドデプロイワークフローの定義
+name: Deploy Backend
+
+# このワークフローが他のワークフローから呼び出されることを指定
+on:
+  workflow_call:
+
+# 環境変数の設定
+env:
+  ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  PROJECT: ${{ secrets.PROJECT }}
+  AWS_REGION: ap-northeast-1
+  WORKFLOW_BRANCH: ${{ github.ref == 'refs/heads/main' && 'main' || 'develop' }}
+
+# ジョブの定義
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-22.04
+    steps:
+      # リポジトリのコードをチェックアウト
+      - uses: actions/checkout@v4
+      
+      # AWS認証情報を設定
+      - name: Configure AWS credentials
+        uses: ./.github/workflows/common-config.yml@${{ env.WORKFLOW_BRANCH }}
+        with:
+          job: configure-aws
+
+      # QEMUとDocker Buildxのセットアップ
+      - name: Setup QEMU and Docker Buildx
+        uses: ./.github/workflows/common-config.yml@${{ env.WORKFLOW_BRANCH }}
+        with:
+          job: setup-docker
+
+      # バックエンドイメージのビルド
+      - name: Build Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: backend/docker/${{ env.ENV_VAR }}/Dockerfile 
+          platforms: linux/arm64
+          tags: ${{ env.PROJECT }}_image:latest
+          outputs: type=docker,dest=/tmp/${{ env.PROJECT }}_image.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Amazon ECRにログイン
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ビルドしたバックエンドイメージをECRにプッシュ
+      - name: Push Backend Image to ECR
+        run: |
+          docker load --input /tmp/${{ env.PROJECT }}_image.tar
+          docker tag ${{ env.PROJECT }}_image:latest ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository-${{ env.ENV_VAR }}:latest
+          docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository-${{ env.ENV_VAR }}:latest
+
+      # ECSにデプロイ
+      - name: Deploy to ECS
+        run: |
+          export ECS_CLUSTER="${{ env.PROJECT }}-ecs-cluster-${{ env.ENV_VAR }}"
+          export ECS_SERVICE="${{ env.PROJECT }}-ecs-service-${{ env.ENV_VAR }}"
+          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment

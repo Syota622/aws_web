@@ -1,0 +1,60 @@
+# 共通設定ワークフローの定義
+name: Common Configuration
+
+# このワークフローが他のワークフローから呼び出されることを指定
+on:
+  workflow_call:
+    inputs:
+      job:
+        required: true
+        type: string
+
+# 環境変数の設定
+env:
+  ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  PROJECT: ${{ secrets.PROJECT }}
+  AWS_REGION: ap-northeast-1
+
+# ジョブの定義
+jobs:
+  # 変更のチェックを行うジョブ
+  check-changes:
+    runs-on: ubuntu-22.04
+    outputs:
+      lambda_changed: ${{ steps.filter.outputs.lambda_changed }}
+    steps:
+    # リポジトリのコードをチェックアウト
+    - uses: actions/checkout@v4
+    # 特定のパスの変更をチェック
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          lambda_changed:
+            - 'db/migrations/**'
+            - 'lambda/migrate/**'
+
+  # AWS認証情報を設定するジョブ
+  configure-aws:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.PROJECT }}-github-actions-role
+          role-session-name: ${{ env.PROJECT }}-github-actions
+
+  # Dockerのセットアップを行うジョブ
+  setup-docker:
+    runs-on: ubuntu-22.04
+    steps:
+      # QEMUのセットアップ
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+      # Docker Buildxのセットアップ
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
