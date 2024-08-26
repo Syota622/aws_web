@@ -34,15 +34,15 @@ jobs:
       # LambdaコンテナイメージのビルドとプッシュAmazon ECRにプッシュ
       - name: Build and Push Lambda Container Image
         run: |
-          docker build -t ${{ env.PROJECT }}-lambda-migrate:${{ github.sha }} -f lambda/migrate/Dockerfile .
-          docker tag ${{ env.PROJECT }}-lambda-migrate:${{ github.sha }} ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-lambda-migrate-${{ env.ENV_VAR }}:${{ github.sha }}
-          docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-lambda-migrate-${{ env.ENV_VAR }}:${{ github.sha }}
+          docker build -t ${{ env.PROJECT }}-db-lambda-migrate:${{ github.sha }} -f lambda/migrate/Dockerfile .
+          docker tag ${{ env.PROJECT }}-db-lambda-migrate:${{ github.sha }} ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-db-lambda-migrate-${{ env.ENV_VAR }}:${{ github.sha }}
+          docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-db-lambda-migrate-${{ env.ENV_VAR }}:${{ github.sha }}
 
       # Lambda関数を更新
       - name: Update Lambda Function
         run: |
           aws lambda update-function-code --function-name ${{ env.PROJECT }}-db-migration-lambda-${{ env.ENV_VAR }} \
-            --image-uri ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-lambda-migrate-${{ env.ENV_VAR }}:${{ github.sha }}
+            --image-uri ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-db-lambda-migrate-${{ env.ENV_VAR }}:${{ github.sha }}
 
       # データベースマイグレーションを実行
       - name: Run Database Migration
