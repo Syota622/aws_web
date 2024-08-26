@@ -18,13 +18,12 @@ on:
 env:
   # ブランチに応じて環境変数を動的に設定
   ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
-  WORKFLOW_BRANCH: ${{ github.ref == 'refs/heads/main' && 'main' || 'develop' }}
 
 # ジョブの定義
 jobs:
   # 変更のチェックを行うジョブ
   check-changes:
-    uses: ./.github/workflows/common-config.yml@${{ env.ENV_VAR }}
+    uses: ./.github/workflows/common-config.yml
     with:
       job: check-changes
 
@@ -32,11 +31,11 @@ jobs:
   deploy-lambda:
     needs: check-changes
     if: needs.check-changes.outputs.lambda_changed == 'true'
-    uses: ./.github/workflows/deploy-lambda.yml@${{ env.ENV_VAR }}
+    uses: ./.github/workflows/deploy-lambda.yml
     secrets: inherit
 
   # バックエンドのデプロイを行うジョブ
   deploy-backend:
     needs: [check-changes, deploy-lambda]
-    uses: ./.github/workflows/deploy-backend.yml@${{ env.ENV_VAR }}
+    uses: ./.github/workflows/deploy-backend.yml
     secrets: inherit

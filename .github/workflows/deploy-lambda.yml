@@ -11,7 +11,6 @@ env:
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
   PROJECT: ${{ secrets.PROJECT }}
   AWS_REGION: ap-northeast-1
-  WORKFLOW_BRANCH: ${{ github.ref == 'refs/heads/main' && 'main' || 'develop' }}
 
 # ジョブの定義
 jobs:
@@ -23,7 +22,7 @@ jobs:
       
       # AWS認証情報を設定
       - name: Configure AWS credentials
-        uses: ./.github/workflows/common-config.yml@${{ env.WORKFLOW_BRANCH }}
+        uses: ./.github/workflows/common-config.yml
         with:
           job: configure-aws
 
