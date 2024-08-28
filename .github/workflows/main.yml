@@ -20,20 +20,20 @@ env:
 
 # ジョブの定義
 jobs:
-  # 変更のチェックを行うジョブ
-  check-changes:
+  # 共通設定のジョブ
+  common-config:
     uses: ./.github/workflows/common-config.yml
     secrets: inherit
 
   # Lambdaのデプロイを行うジョブ
   deploy-lambda:
-    needs: check-changes
-    if: needs.check-changes.outputs.lambda_changed == 'true'
+    needs: common-config
+    if: needs.common-config.outputs.lambda_changed == 'true'
     uses: ./.github/workflows/deploy-lambda.yml
     secrets: inherit
 
   # バックエンドのデプロイを行うジョブ
   deploy-backend:
-    needs: [check-changes, deploy-lambda]
+    needs: [common-config, deploy-lambda]
     uses: ./.github/workflows/deploy-backend.yml
     secrets: inherit
