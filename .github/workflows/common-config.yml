@@ -11,12 +11,11 @@ on:
         required: true
     outputs:
       lambda_changed:
-        description: "Whether lambda code has changed"
+        description: "Lambda コードが変更されたかどうか"
         value: ${{ jobs.check-changes.outputs.lambda_changed }}
 
 # 環境変数の設定
 env:
-  ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
   AWS_REGION: ap-northeast-1
 
 # ジョブの定義
