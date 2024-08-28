@@ -9,6 +9,10 @@ on:
         required: true
       PROJECT:
         required: true
+    outputs:
+      lambda_changed:
+        description: "Whether lambda code has changed"
+        value: ${{ jobs.check-changes.outputs.lambda_changed }}
 
 # 環境変数の設定
 env:
@@ -17,20 +21,23 @@ env:
 
 # ジョブの定義
 jobs:
-  all-jobs:
+  check-changes:
+    runs-on: ubuntu-22.04
+    outputs:
+      lambda_changed: ${{ steps.filter.outputs.lambda_changed }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          lambda_changed:
+            - 'db/migrations/**'
+            - 'lambda/migrate/**'
+
+  configure-aws:
     runs-on: ubuntu-22.04
     steps:
-      # 変更のチェックを行うステップ
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            lambda_changed:
-              - 'db/migrations/**'
-              - 'lambda/migrate/**'
-
-      # AWS認証情報を設定するステップ
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -38,13 +45,12 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.PROJECT }}-github-actions-role
           role-session-name: ${{ secrets.PROJECT }}-github-actions
 
-      # Dockerのセットアップを行うステップ
+  setup-docker:
+    runs-on: ubuntu-22.04
+    steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-    outputs:
-      lambda_changed: ${{ steps.filter.outputs.lambda_changed }}

@@ -23,7 +23,9 @@ jobs:
   # 共通設定のジョブ
   common-config:
     uses: ./.github/workflows/common-config.yml
-    secrets: inherit
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets[format('{0}_AWS_ACCOUNT_ID', env.ENV_VAR)] }}
+      PROJECT: ${{ secrets[format('{0}_PROJECT', env.ENV_VAR)] }}
 
   # Lambdaのデプロイを行うジョブ
   deploy-lambda:
