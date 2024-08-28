@@ -4,11 +4,13 @@ name: Common Configuration
 # このワークフローが他のワークフローから呼び出されることを指定
 on:
   workflow_call:
-    secrets:
-      AWS_ACCOUNT_ID:
+    inputs:
+      aws_account_id:
         required: true
-      PROJECT:
+        type: string
+      project:
         required: true
+        type: string
     outputs:
       lambda_changed:
         description: "Lambda コードが変更されたかどうか"
@@ -41,8 +43,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.PROJECT }}-github-actions-role
-          role-session-name: ${{ secrets.PROJECT }}-github-actions
+          role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/${{ inputs.project }}-github-actions-role
+          role-session-name: ${{ inputs.project }}-github-actions
 
   setup-docker:
     runs-on: ubuntu-22.04
