@@ -8,12 +8,15 @@ on:
       job:
         required: true
         type: string
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      PROJECT:
+        required: true
 
 # 環境変数の設定
 env:
   ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
-  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-  PROJECT: ${{ secrets.PROJECT }}
   AWS_REGION: ap-northeast-1
 
 # ジョブの定義
@@ -43,8 +46,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.PROJECT }}-github-actions-role
-          role-session-name: ${{ env.PROJECT }}-github-actions
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.PROJECT }}-github-actions-role
+          role-session-name: ${{ secrets.PROJECT }}-github-actions
 
   # Dockerのセットアップを行うジョブ
   setup-docker:

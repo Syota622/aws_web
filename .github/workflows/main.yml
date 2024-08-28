@@ -16,7 +16,6 @@ on:
 
 # 環境変数の設定
 env:
-  # ブランチに応じて環境変数を動的に設定
   ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
 
 # ジョブの定義
@@ -26,6 +25,9 @@ jobs:
     uses: ./.github/workflows/common-config.yml
     with:
       job: check-changes
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      PROJECT: ${{ secrets.PROJECT }}
 
   # Lambdaのデプロイを行うジョブ
   deploy-lambda:
