@@ -16,41 +16,43 @@ on:
 
 # ジョブの定義
 jobs:
-  # 環境変数を設定するジョブ
-  set-env:
+  # 環境を設定するジョブ
+  set-environment:
     runs-on: ubuntu-latest
     outputs:
-      env_name: ${{ steps.set-env-step.outputs.env_name }}
+      env_name: ${{ steps.set-env.outputs.env_name }}
     steps:
-      - id: set-env-step
+      - id: set-env
         run: |
           if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
-            echo "env_name=prod" >> $GITHUB_OUTPUT
+            echo "env_name=production" >> $GITHUB_OUTPUT
           elif [[ ${{ github.ref }} == 'refs/heads/develop' ]]; then
-            echo "env_name=dev" >> $GITHUB_OUTPUT
-          elif [[ ${{ github.ref }} == refs/heads/feature/* ]]; then
-            echo "env_name=prod" >> $GITHUB_OUTPUT
+            echo "env_name=development" >> $GITHUB_OUTPUT
           else
-            echo "env_name=" >> $GITHUB_OUTPUT
+            echo "env_name=development" >> $GITHUB_OUTPUT
           fi
 
   # 共通設定のジョブ
   common-config:
-    needs: set-env
+    needs: set-environment
     uses: ./.github/workflows/common-config.yml
     with:
-      aws_account_id: ${{ secrets[format('{0}_AWS_ACCOUNT_ID', needs.set-env.outputs.env_name)] }}
-      project: ${{ secrets[format('{0}_PROJECT', needs.set-env.outputs.env_name)] }}
+      environment: ${{ needs.set-environment.outputs.env_name }}
+    secrets: inherit
 
   # Lambdaのデプロイを行うジョブ
   deploy-lambda:
-    needs: [set-env, common-config]
+    needs: [set-environment, common-config]
     if: needs.common-config.outputs.lambda_changed == 'true'
     uses: ./.github/workflows/deploy-lambda.yml
+    with:
+      environment: ${{ needs.set-environment.outputs.env_name }}
     secrets: inherit
 
   # バックエンドのデプロイを行うジョブ
   deploy-backend:
-    needs: [set-env, common-config, deploy-lambda]
+    needs: [set-environment, common-config, deploy-lambda]
     uses: ./.github/workflows/deploy-backend.yml
+    with:
+      environment: ${{ needs.set-environment.outputs.env_name }}
     secrets: inherit
