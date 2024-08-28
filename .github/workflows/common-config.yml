@@ -4,10 +4,6 @@ name: Common Configuration
 # このワークフローが他のワークフローから呼び出されることを指定
 on:
   workflow_call:
-    inputs:
-      job:
-        required: true
-        type: string
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -24,7 +20,6 @@ jobs:
   # 変更のチェックを行うジョブ
   check-changes:
     runs-on: ubuntu-22.04
-    # steps.filter.outputs.lambda_changedとは、特定のパスの変更をチェックしている
     outputs:
       lambda_changed: ${{ steps.filter.outputs.lambda_changed }}
     steps:
