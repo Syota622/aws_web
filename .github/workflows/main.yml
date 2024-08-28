@@ -23,11 +23,7 @@ jobs:
   # 変更のチェックを行うジョブ
   check-changes:
     uses: ./.github/workflows/common-config.yml
-    with:
-      job: check-changes
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      PROJECT: ${{ secrets.PROJECT }}
+    secrets: inherit
 
   # Lambdaのデプロイを行うジョブ
   deploy-lambda:

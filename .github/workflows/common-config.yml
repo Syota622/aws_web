@@ -24,6 +24,7 @@ jobs:
   # 変更のチェックを行うジョブ
   check-changes:
     runs-on: ubuntu-22.04
+    # steps.filter.outputs.lambda_changedとは、特定のパスの変更をチェックしている
     outputs:
       lambda_changed: ${{ steps.filter.outputs.lambda_changed }}
     steps:
