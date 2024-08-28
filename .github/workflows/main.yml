@@ -38,9 +38,9 @@ jobs:
   common-config:
     needs: set-env
     uses: ./.github/workflows/common-config.yml
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets[format('{0}_AWS_ACCOUNT_ID', needs.set-env.outputs.env_name)] }}
-      PROJECT: ${{ secrets[format('{0}_PROJECT', needs.set-env.outputs.env_name)] }}
+    with:
+      aws_account_id: ${{ secrets[format('{0}_AWS_ACCOUNT_ID', needs.set-env.outputs.env_name)] }}
+      project: ${{ secrets[format('{0}_PROJECT', needs.set-env.outputs.env_name)] }}
 
   # Lambdaのデプロイを行うジョブ
   deploy-lambda:
