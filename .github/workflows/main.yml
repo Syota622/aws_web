@@ -14,45 +14,29 @@ on:
       - 'db/migrations/**'
       - 'lambda/migrate/**'
 
+# 環境変数の設定
+env:
+  ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+
 # ジョブの定義
 jobs:
-  # 環境を設定するジョブ
-  set-environment:
-    runs-on: ubuntu-latest
-    outputs:
-      env_name: ${{ steps.set-env.outputs.env_name }}
-    steps:
-      - id: set-env
-        run: |
-          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
-            echo "env_name=production" >> $GITHUB_OUTPUT
-          elif [[ ${{ github.ref }} == 'refs/heads/develop' ]]; then
-            echo "env_name=development" >> $GITHUB_OUTPUT
-          else
-            echo "env_name=development" >> $GITHUB_OUTPUT
-          fi
-
-  # 共通設定のジョブ
   common-config:
-    needs: set-environment
     uses: ./.github/workflows/common-config.yml
-    with:
-      environment: ${{ needs.set-environment.outputs.env_name }}
     secrets: inherit
+    with:
+      environment: ${{ env.ENV_VAR }}
 
-  # Lambdaのデプロイを行うジョブ
   deploy-lambda:
-    needs: [set-environment, common-config]
+    needs: common-config
     if: needs.common-config.outputs.lambda_changed == 'true'
     uses: ./.github/workflows/deploy-lambda.yml
-    with:
-      environment: ${{ needs.set-environment.outputs.env_name }}
     secrets: inherit
+    with:
+      environment: ${{ env.ENV_VAR }}
 
-  # バックエンドのデプロイを行うジョブ
   deploy-backend:
-    needs: [set-environment, common-config, deploy-lambda]
+    needs: [common-config, deploy-lambda]
     uses: ./.github/workflows/deploy-backend.yml
-    with:
-      environment: ${{ needs.set-environment.outputs.env_name }}
     secrets: inherit
+    with:
+      environment: ${{ env.ENV_VAR }}
