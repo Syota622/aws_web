@@ -1,7 +1,5 @@
-# メインワークフローの定義
 name: Main Workflow
 
-# ワークフローのトリガー条件を設定
 on:
   push:
     branches:
@@ -14,43 +12,30 @@ on:
       - 'db/migrations/**'
       - 'lambda/migrate/**'
 
-# ジョブの定義
 jobs:
-  # 環境変数を設定するジョブ
-  set-env:
-    runs-on: ubuntu-latest
-    outputs:
-      env_name: ${{ steps.set-env-step.outputs.env_name }}
-    steps:
-      - id: set-env-step
-        run: |
-          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
-            echo "env_name=prod" >> $GITHUB_OUTPUT
-          elif [[ ${{ github.ref }} == 'refs/heads/develop' ]]; then
-            echo "env_name=dev" >> $GITHUB_OUTPUT
-          elif [[ ${{ github.ref }} == refs/heads/feature/* ]]; then
-            echo "env_name=prod" >> $GITHUB_OUTPUT
-          else
-            echo "env_name=" >> $GITHUB_OUTPUT
-          fi
-
-  # 共通設定のジョブ
   common-config:
-    needs: set-env
     uses: ./.github/workflows/common-config.yml
+    with:
+      env_name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     secrets:
-      AWS_ACCOUNT_ID: ${{ secrets[format('{0}_AWS_ACCOUNT_ID', needs.set-env.outputs.env_name)] }}
-      PROJECT: ${{ secrets[format('{0}_PROJECT', needs.set-env.outputs.env_name)] }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      PROJECT: ${{ secrets.PROJECT }}
 
-  # Lambdaのデプロイを行うジョブ
   deploy-lambda:
-    needs: [set-env, common-config]
+    needs: common-config
     if: needs.common-config.outputs.lambda_changed == 'true'
     uses: ./.github/workflows/deploy-lambda.yml
-    secrets: inherit
+    with:
+      env_name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      PROJECT: ${{ secrets.PROJECT }}
 
-  # バックエンドのデプロイを行うジョブ
   deploy-backend:
-    needs: [set-env, common-config, deploy-lambda]
+    needs: [common-config, deploy-lambda]
     uses: ./.github/workflows/deploy-backend.yml
-    secrets: inherit
+    with:
+      env_name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      PROJECT: ${{ secrets.PROJECT }}
