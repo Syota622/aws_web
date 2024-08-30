@@ -12,10 +12,14 @@ on:
         required: true
       PROJECT:
         required: true
+    outputs:
+      lambda_changed:
+        description: "Whether lambda code has changed"
+        value: ${{ jobs.check-changes.outputs.lambda_changed }}
 
 jobs:
   check-changes:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     outputs:
       lambda_changed: ${{ steps.filter.outputs.lambda_changed }}
     steps:
@@ -29,7 +33,7 @@ jobs:
             - 'lambda/migrate/**'
 
   configure-aws:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -39,7 +43,7 @@ jobs:
           role-session-name: ${{ secrets.PROJECT }}-github-actions
 
   setup-docker:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
