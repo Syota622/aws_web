@@ -24,7 +24,7 @@ jobs:
     uses: ./.github/workflows/common-config.yml
     secrets: inherit
     with:
-      environment: ${{ env.ENV_VAR }}
+      env_name: ${{ env.ENV_VAR }}
 
   deploy-lambda:
     needs: common-config
@@ -32,11 +32,11 @@ jobs:
     uses: ./.github/workflows/deploy-lambda.yml
     secrets: inherit
     with:
-      environment: ${{ env.ENV_VAR }}
+      env_name: ${{ env.ENV_VAR }}
 
   deploy-backend:
     needs: [common-config, deploy-lambda]
     uses: ./.github/workflows/deploy-backend.yml
     secrets: inherit
     with:
-      environment: ${{ env.ENV_VAR }}
+      env_name: ${{ env.ENV_VAR }}
