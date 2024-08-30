@@ -72,7 +72,7 @@ jobs:
       # Lambdaコンテナイメージをビルド
       - name: Build Lambda Container Image
         run: |
-          docker build -t ${{ env.PROJECT }}-lambda-migrate:${{ github.sha }} -f lambda/migrate/Dockerfile .
+          docker build -t ${{ env.PROJECT }}-lambda-migrate:${{ github.sha }} -f backend/lambda/migrate/Dockerfile ./backend
           docker tag ${{ env.PROJECT }}-lambda-migrate:${{ github.sha }} ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-lambda-migrate-${{ env.ENV_VAR }}:${{ github.sha }}
 
       # LambdaコンテナイメージをECRにプッシュ
