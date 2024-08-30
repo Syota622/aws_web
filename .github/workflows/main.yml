@@ -12,30 +12,57 @@ on:
       - 'db/migrations/**'
       - 'lambda/migrate/**'
 
+env:
+  ENV_NAME: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+
 jobs:
-  common-config:
-    uses: ./.github/workflows/common-config.yml
-    with:
-      env_name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      PROJECT: ${{ secrets.PROJECT }}
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      lambda_changed: ${{ steps.filter.outputs.lambda_changed }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          lambda_changed:
+            - 'db/migrations/**'
+            - 'lambda/migrate/**'
+
+  configure-aws:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-northeast-1
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.PROJECT }}-github-actions-role
+          role-session-name: ${{ secrets.PROJECT }}-github-actions
+
+  setup-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
   deploy-lambda:
-    needs: common-config
-    if: needs.common-config.outputs.lambda_changed == 'true'
-    uses: ./.github/workflows/deploy-lambda.yml
-    with:
-      env_name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      PROJECT: ${{ secrets.PROJECT }}
+    needs: [check-changes, configure-aws, setup-docker]
+    if: needs.check-changes.outputs.lambda_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Lambda
+        run: echo "Deploying Lambda for ${{ env.ENV_NAME }} environment"
+        # ここに実際のLambdaデプロイのステップを追加
 
   deploy-backend:
-    needs: [common-config, deploy-lambda]
-    uses: ./.github/workflows/deploy-backend.yml
-    with:
-      env_name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      PROJECT: ${{ secrets.PROJECT }}
+    needs: [check-changes, configure-aws, setup-docker, deploy-lambda]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Backend
+        run: echo "Deploying Backend for ${{ env.ENV_NAME }} environment"
+        # ここに実際のバックエンドデプロイのステップを追加
