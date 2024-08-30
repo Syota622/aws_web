@@ -1,11 +1,9 @@
+# 共通設定ワークフローの定義
 name: Common Configuration
 
+# このワークフローが他のワークフローから呼び出されることを指定
 on:
   workflow_call:
-    inputs:
-      env_name:
-        required: true
-        type: string
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -13,9 +11,14 @@ on:
         required: true
     outputs:
       lambda_changed:
-        description: "Whether lambda code has changed"
+        description: "Lambda コードが変更されたかどうか"
         value: ${{ jobs.check-changes.outputs.lambda_changed }}
 
+# 環境変数の設定
+env:
+  AWS_REGION: ap-northeast-1
+
+# ジョブの定義
 jobs:
   check-changes:
     runs-on: ubuntu-22.04
@@ -37,7 +40,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ap-northeast-1
+          aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.PROJECT }}-github-actions-role
           role-session-name: ${{ secrets.PROJECT }}-github-actions
 
