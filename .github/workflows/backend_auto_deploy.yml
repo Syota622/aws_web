@@ -16,12 +16,13 @@ on:
 
 # GitHub Actionsで利用するIAMロールの権限設定
 permissions:
-  id-token: write
-  contents: read
+  id-token: write  # OIDCプロバイダーとの認証に必要
+  contents: read   # リポジトリの内容を読み取るために必要
 
 # 環境変数の設定
 env:
   # ブランチに応じて環境変数を動的に設定
+  # main -> prod, develop -> dev, feature/* -> prod, その他 -> ''
   ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
   PROJECT: ${{ secrets.PROJECT }}
@@ -40,6 +41,7 @@ jobs:
       with:
         filters: |
           lambda_changed:
+            - '.github/workflows/backend_auto_deploy.yml'
             - 'db/migrations/**'
             - 'lambda/migrate/**'
 
