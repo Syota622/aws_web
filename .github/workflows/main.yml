@@ -56,7 +56,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Lambda
-        run: echo "Deploying Lambda for ${{ env.ENV_NAME }} environment"
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          PROJECT: ${{ secrets.PROJECT }}
+        run: |
+          echo "Deploying Lambda for ${{ env.ENV_NAME }} environment"
+          echo "AWS Account ID: $AWS_ACCOUNT_ID"
+          echo "Project: $PROJECT"
         # ここに実際のLambdaデプロイのステップを追加
 
   deploy-backend:
@@ -64,5 +70,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Backend
-        run: echo "Deploying Backend for ${{ env.ENV_NAME }} environment"
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          PROJECT: ${{ secrets.PROJECT }}
+        run: |
+          echo "Deploying Backend for ${{ env.ENV_NAME }} environment"
+          echo "AWS Account ID: $AWS_ACCOUNT_ID"
+          echo "Project: $PROJECT"
         # ここに実際のバックエンドデプロイのステップを追加
