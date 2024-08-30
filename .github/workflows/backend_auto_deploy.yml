@@ -103,8 +103,11 @@ jobs:
           SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name ${{ env.PROJECT }}-vpc-endpoint-migrate-sg-${{ env.ENV_VAR }} --description "Security group for VPC endpoint" --vpc-id ${{ env.VPC_ID }} --output text)
           aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 443 --cidr 0.0.0.0/0
           echo "Security Group ID: $SECURITY_GROUP_ID"
-          aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.logs --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }}
-          aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.kms --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }}
+          VPC_ENDPOINT_ID_LOGS=$(aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.logs --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }} --query 'VpcEndpoint.VpcEndpointId' --output text)
+          VPC_ENDPOINT_ID_KMS=$(aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.kms --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }} --query 'VpcEndpoint.VpcEndpointId' --output text)
+          echo "VPC Endpoint ID (Logs): $VPC_ENDPOINT_ID_LOGS"
+          echo "VPC Endpoint ID (KMS): $VPC_ENDPOINT_ID_KMS"
+        continue-on-error: true
 
       # VPCエンドポイントのステータス確認
       - name: Check VPC Endpoint Status
@@ -132,9 +135,10 @@ jobs:
 
       # VPCエンドポイント削除
       - name: Delete VPC Endpoint & Security Group
+        if: always()
         run: |
-          aws ec2 delete-vpc-endpoints --vpc-id ${{ env.VPC_ID }} --service-names com.amazonaws.${{ env.AWS_REGION }}.logs
-          aws ec2 delete-vpc-endpoints --vpc-id ${{ env.VPC_ID }} --service-names com.amazonaws.${{ env.AWS_REGION }}.kms
+          aws ec2 delete-vpc-endpoints --vpc-id ${{ env.VPC_ID }} --service-names com.amazonaws.${{ env.AWS_REGION }}.logs --vpc-endpoint-ids $VPC_ENDPOINT_ID_LOGS
+          aws ec2 delete-vpc-endpoints --vpc-id ${{ env.VPC_ID }} --service-names com.amazonaws.${{ env.AWS_REGION }}.kms --vpc-endpoint-ids $VPC_ENDPOINT_ID_KMS
           # VPCエンドポイントの削除が完了したかどうかを確認
           echo "VPCエンドポイントの削除状況を確認中..."
           while true; do
