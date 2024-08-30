@@ -38,6 +38,7 @@ jobs:
     # このジョブの出力を定義します。他のジョブでこの結果を使用できます
     outputs:
       lambda_changed: ${{ steps.filter.outputs.lambda_changed }}
+      backend_changed: ${{ steps.filter.outputs.backend_changed }}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -53,6 +54,8 @@ jobs:
             - '.github/workflows/backend_auto_deploy.yml'
             - 'db/migrations/**'
             - 'lambda/migrate/**'
+          backend_changed:
+            - 'backend/**'
 
   # Lambdaのデプロイとマイグレーションを実行するジョブ
   deploy-lambda-and-migrate:
@@ -125,6 +128,7 @@ jobs:
       - name: Run Database Migration
         run: |
           aws lambda invoke --function-name ${{ env.PROJECT }}-db-migration-lambda-${{ env.ENV_VAR }} --payload '{}' response.json
+          continue-on-error: true
           cat response.json
 
       # VPCエンドポイント削除
@@ -132,11 +136,26 @@ jobs:
         run: |
           aws ec2 delete-vpc-endpoints --vpc-id ${{ env.VPC_ID }} --service-names com.amazonaws.${{ env.AWS_REGION }}.logs
           aws ec2 delete-vpc-endpoints --vpc-id ${{ env.VPC_ID }} --service-names com.amazonaws.${{ env.AWS_REGION }}.kms
+          # VPCエンドポイントの削除が完了したかどうかを確認
+          echo "VPCエンドポイントの削除状況を確認中..."
+          while true; do
+            LOGS_ENDPOINT_COUNT=$(aws ec2 describe-vpc-endpoints --filters "Name=service-name,Values=com.amazonaws.${{ env.AWS_REGION }}.logs" --query 'VpcEndpoints[].VpcEndpointId' --output text | wc -w)
+            KMS_ENDPOINT_COUNT=$(aws ec2 describe-vpc-endpoints --filters "Name=service-name,Values=com.amazonaws.${{ env.AWS_REGION }}.kms" --query 'VpcEndpoints[].VpcEndpointId' --output text | wc -w)
+            
+            if [ "$LOGS_ENDPOINT_COUNT" -eq 0 ] && [ "$KMS_ENDPOINT_COUNT" -eq 0 ]; then
+              echo "両方のVPCエンドポイントが正常に削除されました。"
+              break
+            else
+              echo "VPCエンドポイントの削除がまだ完了していません。10秒後に再確認します。"
+              sleep 10
+            fi
+          done
           aws ec2 delete-security-group --group-id $SECURITY_GROUP_ID
 
   # バックエンドのビルドとデプロイを行うジョブ
   build-and-deploy:
     needs: [check-changes, deploy-lambda-and-migrate]
+    if: needs.check-changes.outputs.backend_changed == 'true'
     runs-on: ubuntu-22.04
     environment: 
       name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
