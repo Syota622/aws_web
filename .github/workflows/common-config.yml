@@ -1,20 +1,21 @@
-# 共通設定ワークフローの定義
 name: Common Configuration
 
-# このワークフローが他のワークフローから呼び出されることを指定
 on:
   workflow_call:
     inputs:
       env_name:
         required: true
         type: string
-    secrets: inherit
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      PROJECT:
+        required: true
     outputs:
       lambda_changed:
         description: "Whether lambda code has changed"
         value: ${{ jobs.check-changes.outputs.lambda_changed }}
 
-# ジョブの定義
 jobs:
   check-changes:
     runs-on: ubuntu-22.04
@@ -32,7 +33,6 @@ jobs:
 
   configure-aws:
     runs-on: ubuntu-22.04
-    environment: ${{ inputs.env_name }}
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
