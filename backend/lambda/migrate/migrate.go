@@ -25,14 +25,14 @@ type DBConfig struct {
 }
 
 func handler(ctx context.Context) error {
-	log.Println("Starting database migration handler")
+	log.Println("データベースマイグレーションハンドラーを開始します")
 
 	// SecretsManagerから接続情報を取得
 	secretID := os.Getenv("SECRETS_MANAGER_SECRET_ARN")
 	dbConfig, err := getDBConfigFromSecretsManager(secretID)
 	if err != nil {
-		log.Printf("Error getting DB config from Secrets Manager: %v", err)
-		return fmt.Errorf("error getting DB config from Secrets Manager: %v", err)
+		log.Printf("Secrets Managerからのデータベース設定取得エラー: %v", err)
+		return fmt.Errorf("secrets managerからのデータベース設定取得エラー: %v", err)
 	}
 
 	// データベース接続URLの構築
@@ -43,51 +43,51 @@ func handler(ctx context.Context) error {
 		dbConfig.Port,
 		dbConfig.Name)
 
-	log.Printf("Database connection URL: %s://*****@%s:%s/%s",
+	log.Printf("データベース接続URL: %s://*****@%s:%s/%s",
 		dbConfig.User,
 		dbConfig.Host,
 		dbConfig.Port,
 		dbConfig.Name)
 
 	// マイグレーションインスタンスの作成
-	log.Println("Creating migration instance")
+	log.Println("マイグレーションインスタンスを作成中")
 	m, err := migrate.New(
 		"file:///var/task/migrations",
 		fmt.Sprintf("mysql://%s", dbURL))
 	if err != nil {
-		log.Printf("Error creating migrate instance: %v", err)
-		return fmt.Errorf("error creating migrate instance: %v", err)
+		log.Printf("マイグレーションインスタンス作成エラー: %v", err)
+		return fmt.Errorf("マイグレーションインスタンス作成エラー: %v", err)
 	}
 
 	// 現在のバージョンを取得
 	version, dirty, err := m.Version()
 	if err != nil && err != migrate.ErrNilVersion {
-		log.Printf("Error getting current migration version: %v", err)
+		log.Printf("現在のマイグレーションバージョン取得エラー: %v", err)
 	} else {
-		log.Printf("Current migration version: %d, Dirty: %v", version, dirty)
+		log.Printf("現在のマイグレーションバージョン: %d, ダーティ状態: %v", version, dirty)
 	}
 
 	// マイグレーションの実行（最新バージョンまで）
-	log.Println("Starting database migration")
+	log.Println("データベースマイグレーションを開始します")
 	err = m.Up()
 	if err != nil {
 		if err == migrate.ErrNoChange {
-			log.Println("No migration changes required")
+			log.Println("マイグレーションの変更は必要ありません")
 			return nil
 		}
-		log.Printf("Error migrating database: %v", err)
-		return fmt.Errorf("error migrating database: %v", err)
+		log.Printf("データベースマイグレーションエラー: %v", err)
+		return fmt.Errorf("データベースマイグレーションエラー: %v", err)
 	}
 
 	// 最終的なバージョンを取得
 	finalVersion, finalDirty, err := m.Version()
 	if err != nil {
-		log.Printf("Error getting final migration version: %v", err)
+		log.Printf("最終マイグレーションバージョン取得エラー: %v", err)
 	} else {
-		log.Printf("Final migration version: %d, Dirty: %v", finalVersion, finalDirty)
+		log.Printf("最終マイグレーションバージョン: %d, ダーティ状態: %v", finalVersion, finalDirty)
 	}
 
-	log.Println("Database migration completed successfully")
+	log.Println("データベースマイグレーションが正常に完了しました")
 	return nil
 }
 
@@ -97,7 +97,7 @@ func getDBConfigFromSecretsManager(secretID string) (*DBConfig, error) {
 		Region: aws.String("ap-northeast-1"), // リージョンを適切に設定してください
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error creating AWS session: %v", err)
+		return nil, fmt.Errorf("AWSセッション作成エラー: %v", err)
 	}
 
 	svc := secretsmanager.New(sess)
@@ -121,6 +121,6 @@ func getDBConfigFromSecretsManager(secretID string) (*DBConfig, error) {
 }
 
 func main() {
-	log.Println("Starting Lambda function")
+	log.Println("Lambda関数を開始します")
 	lambda.Start(handler)
 }
