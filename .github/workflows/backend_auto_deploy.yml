@@ -100,7 +100,7 @@ jobs:
       # VPCエンドポイント作成(Logs&KMS)
       - name: Create Security Group for VPC Endpoint
         run: |
-          SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name ${{ env.PROJECT }}-db-migration-lambda-sg-${{ env.ENV_VAR }} --description "Security group for VPC endpoint" --vpc-id ${{ env.VPC_ID }} --output text)
+          SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name ${{ env.PROJECT }}-vpc-endpoint-migrate-sg-${{ env.ENV_VAR }} --description "Security group for VPC endpoint" --vpc-id ${{ env.VPC_ID }} --output text)
           aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 443 --cidr 0.0.0.0/0
           echo "Security Group ID: $SECURITY_GROUP_ID"
           aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.logs --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }}
