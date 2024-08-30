@@ -29,16 +29,22 @@ env:
   AWS_REGION: ap-northeast-1
 
 jobs:
-  # 変更のあったファイルをチェックするジョブ
+  # このジョブは、特定のファイルやディレクトリに変更があったかどうかをチェックします
   check-changes:
     runs-on: ubuntu-22.04
+    # このジョブの出力を定義します。他のジョブでこの結果を使用できます
     outputs:
       lambda_changed: ${{ steps.filter.outputs.lambda_changed }}
     steps:
-    - uses: actions/checkout@v4
-    - uses: dorny/paths-filter@v3
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # 特定のパスに変更があったかをチェックします
+    - name: Check Paths
+      uses: dorny/paths-filter@v3
       id: filter
       with:
+        # 以下のパスに一致するファイルに変更があった場合、lambda_changedがtrueになります
         filters: |
           lambda_changed:
             - '.github/workflows/backend_auto_deploy.yml'
