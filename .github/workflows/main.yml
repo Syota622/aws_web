@@ -14,7 +14,7 @@ on:
 
 jobs:
   common-config:
-    uses: ./.github/workflows/common-config.yml
+    uses: ./.github/workflows/common-config.yml@main
     with:
       env_name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     secrets:
@@ -24,7 +24,7 @@ jobs:
   deploy-lambda:
     needs: common-config
     if: needs.common-config.outputs.lambda_changed == 'true'
-    uses: ./.github/workflows/deploy-lambda.yml
+    uses: ./.github/workflows/deploy-lambda.yml@main
     with:
       env_name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     secrets:
@@ -33,7 +33,7 @@ jobs:
 
   deploy-backend:
     needs: [common-config, deploy-lambda]
-    uses: ./.github/workflows/deploy-backend.yml
+    uses: ./.github/workflows/deploy-backend.yml@main
     with:
       env_name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     secrets:

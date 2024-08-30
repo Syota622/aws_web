@@ -12,10 +12,6 @@ on:
         required: true
       PROJECT:
         required: true
-    outputs:
-      lambda_changed:
-        description: "Whether lambda code has changed"
-        value: ${{ jobs.check-changes.outputs.lambda_changed }}
 
 jobs:
   check-changes:
