@@ -1,0 +1,160 @@
+# ワークフロー名の定義
+name: Backend Deploy with Lambda Migration
+
+# ワークフローのトリガー設定
+on: 
+  push:
+    branches: 
+    - "develop"
+    - "main"
+    - "feature/**"
+    paths:
+      - '.github/workflows/backend_auto_deploy.yml'
+      - 'backend/**'
+      - 'db/migrations/**'
+      - 'lambda/migrate/**'
+
+# GitHub Actionsで利用するIAMロールの権限設定
+permissions:
+  id-token: write
+  contents: read
+
+# 環境変数の設定
+env:
+  # ブランチに応じて環境変数を動的に設定
+  ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  PROJECT: ${{ secrets.PROJECT }}
+  AWS_REGION: ap-northeast-1
+
+jobs:
+  # 変更のあったファイルをチェックするジョブ
+  check-changes:
+    runs-on: ubuntu-22.04
+    outputs:
+      lambda_changed: ${{ steps.filter.outputs.lambda_changed }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          lambda_changed:
+            - 'db/migrations/**'
+            - 'lambda/migrate/**'
+
+  # Lambdaのデプロイとマイグレーションを実行するジョブ
+  deploy-lambda-and-migrate:
+    needs: check-changes
+    if: needs.check-changes.outputs.lambda_changed == 'true'
+    runs-on: ubuntu-22.04
+    environment: 
+      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+    steps:
+      # リポジトリのコードをチェックアウト
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # AWS認証情報を設定
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.PROJECT }}-github-actions-role
+          role-session-name: ${{ env.PROJECT }}-github-actions
+
+      # Amazon ECRにログイン
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Lambdaコンテナイメージをビルド
+      - name: Build Lambda Container Image
+        run: |
+          docker build -t ${{ env.PROJECT }}-lambda-migrate:${{ github.sha }} -f lambda/migrate/Dockerfile .
+          docker tag ${{ env.PROJECT }}-lambda-migrate:${{ github.sha }} ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-lambda-migrate-${{ env.ENV_VAR }}:${{ github.sha }}
+
+      # LambdaコンテナイメージをECRにプッシュ
+      - name: Push Lambda Container Image to ECR
+        run: |
+          docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-lambda-migrate-${{ env.ENV_VAR }}:${{ github.sha }}
+
+      # Lambda関数を更新
+      - name: Update Lambda Function
+        run: |
+          aws lambda update-function-code --function-name ${{ env.PROJECT }}-db-migration-lambda-${{ env.ENV_VAR }} \
+            --image-uri ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-lambda-migrate-${{ env.ENV_VAR }}:${{ github.sha }}
+
+      # データベースマイグレーションを実行
+      - name: Run Database Migration
+        run: |
+          aws lambda invoke --function-name ${{ env.PROJECT }}-db-migration-lambda-${{ env.ENV_VAR }} --payload '{}' response.json
+          cat response.json
+
+  # バックエンドのビルドとデプロイを行うジョブ
+  build-and-deploy:
+    needs: [check-changes, deploy-lambda-and-migrate]
+    runs-on: ubuntu-22.04
+    environment: 
+      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+    steps:
+      # リポジトリのコードをチェックアウト
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 環境変数の確認
+      - name: env Confirmation
+        run: |
+          echo "ENV_VAR: ${{ env.ENV_VAR }}"
+          echo "AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}"
+          echo "PROJECT: ${{ env.PROJECT }}"
+          echo "AWS_REGION: ${{ env.AWS_REGION }}"
+
+      # ARM64アーキテクチャのエミュレーションをセットアップ
+      - name: Set up QEMU for arm64
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      # Docker Buildxをセットアップ
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # バックエンドのDockerイメージをビルド
+      - name: Build Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: backend/docker/${{ env.ENV_VAR }}/Dockerfile 
+          platforms: linux/arm64
+          tags: ${{ env.PROJECT }}_image:latest
+          outputs: type=docker,dest=/tmp/${{ env.PROJECT }}_image.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # AWS認証情報を設定
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.PROJECT }}-github-actions-role
+          role-session-name: ${{ env.PROJECT }}-github-actions
+
+      # Amazon ECRにログイン
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ビルドしたバックエンドイメージをECRにプッシュ
+      - name: Push Backend Image to ECR
+        run: |
+          docker load --input /tmp/${{ env.PROJECT }}_image.tar
+          docker tag ${{ env.PROJECT }}_image:latest ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository-${{ env.ENV_VAR }}:latest
+          docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository-${{ env.ENV_VAR }}:latest
+
+      # ECSにデプロイ
+      - name: Deploy to ECS
+        run: |
+          export ECS_CLUSTER="${{ env.PROJECT }}-ecs-cluster-${{ env.ENV_VAR }}"
+          export ECS_SERVICE="${{ env.PROJECT }}-ecs-service-${{ env.ENV_VAR }}"
+          echo "ECS_CLUSTER: $ECS_CLUSTER"
+          echo "ECS_SERVICE: $ECS_SERVICE"
+          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
