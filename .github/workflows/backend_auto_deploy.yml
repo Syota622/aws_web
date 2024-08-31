@@ -162,8 +162,8 @@ jobs:
         run: |
           echo "VPCエンドポイントの削除状況を確認中..."
           while true; do
-            LOGS_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound")
-            SECRETS_MANAGER_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound")
+            LOGS_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound" || true)
+            SECRETS_MANAGER_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound" || true)
             
             echo "Logs Endpoint Deleted: $LOGS_ENDPOINT_EXISTS"
             echo "Secrets Manager Endpoint Deleted: $SECRETS_MANAGER_ENDPOINT_EXISTS"
