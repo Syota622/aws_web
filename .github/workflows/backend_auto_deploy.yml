@@ -187,7 +187,7 @@ jobs:
           echo "SecurityGroup ID: ${{ env.SECURITY_GROUP_ID }}"
           aws ec2 delete-security-group --group-id ${{ env.SECURITY_GROUP_ID }}
 
-  # バックエンドのビルドとデプロイを行うジョブ
+  # ECS(バックエンド)のビルドとデプロイを行うジョブ
   build-and-deploy:
     needs: [check-changes, deploy-lambda-and-migrate]
     if: needs.check-changes.outputs.backend_changed == 'true'
