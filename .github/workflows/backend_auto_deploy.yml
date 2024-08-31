@@ -141,17 +141,17 @@ jobs:
         run: |
           # VPCエンドポイントを削除
           echo "Deleting VPC Endpoint for Logs: ${{ env.VPC_ENDPOINT_ID_LOGS }}"
-          aws ec2 delete-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }}
+          aws ec2 delete-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} || true
           echo "Deleting VPC Endpoint for Secrets Manager: ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }}"
-          aws ec2 delete-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }}
+          aws ec2 delete-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} || true
 
           # VPCエンドポイントの削除が完了したかどうかを確認
           echo "VPCエンドポイントの削除状況を確認中..."
           while true; do
-            LOGS_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} --query 'VpcEndpoints[0].State' --output text)
-            SECRETS_MANAGER_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} --query 'VpcEndpoints[0].State' --output text)
+            LOGS_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound" || true)
+            SECRETS_MANAGER_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound" || true)
             
-            if [ "$LOGS_ENDPOINT_COUNT" -eq 0 ] && [ "$SECRETS_MANAGER_ENDPOINT_COUNT" -eq 0 ]; then
+            if [ "$LOGS_ENDPOINT_EXISTS" -eq 1 ] && [ "$SECRETS_MANAGER_ENDPOINT_EXISTS" -eq 1 ]; then
               echo "両方のVPCエンドポイントが正常に削除されました。"
               break
             else
@@ -161,7 +161,7 @@ jobs:
           done
 
           # セキュリティグループを削除
-          aws ec2 delete-security-group --group-id $SECURITY_GROUP_ID
+          aws ec2 delete-security-group --group-id $SECURITY_GROUP_ID || true
 
   # バックエンドのビルドとデプロイを行うジョブ
   build-and-deploy:
