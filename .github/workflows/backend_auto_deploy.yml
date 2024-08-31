@@ -104,6 +104,7 @@ jobs:
           echo "### SecurityGroupの作成 ###"
           SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name ${{ env.PROJECT }}-vpc-endpoint-migrate-sg-${{ env.ENV_VAR }} --description "Security group for VPC endpoint" --vpc-id ${{ env.VPC_ID }} --output text)
           aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 443 --cidr 0.0.0.0/0
+          echo "SecurityGroup ID: $SECURITY_GROUP_ID"
           echo "SECURITY_GROUP_ID=$SECURITY_GROUP_ID" >> $GITHUB_ENV
         continue-on-error: true
       
@@ -111,6 +112,8 @@ jobs:
       - name: Create VPC Endpoint
         run: |
           echo "### VPCエンドポイントの作成 ###"
+          echo "SecurityGroup ID: ${{ env.SECURITY_GROUP_ID }}"
+
           VPC_ENDPOINT_ID_LOGS=$(aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.logs \
             --vpc-endpoint-type Interface --security-group-ids ${{ env.SECURITY_GROUP_ID }} --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }} --query 'VpcEndpoint.VpcEndpointId' --output text)
           VPC_ENDPOINT_ID_SECRETS_MANAGER=$(aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.secretsmanager \
@@ -181,6 +184,7 @@ jobs:
       - name: Delete Security Group
         run: |
           echo "### セキュリティグループの削除 ###"
+          echo "SecurityGroup ID: ${{ env.SECURITY_GROUP_ID }}"
           aws ec2 delete-security-group --group-id ${{ env.SECURITY_GROUP_ID }}
 
   # バックエンドのビルドとデプロイを行うジョブ
