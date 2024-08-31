@@ -102,15 +102,15 @@ jobs:
       - name: Create Security Group for VPC Endpoint
         run: |
           echo "### SecurityGroupの作成 ###"
-          SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name ${{ env.PROJECT }}-vpc-endpoint-migrate-sg-${{ env.ENV_VAR }} --description "Security group for VPC endpoint" --vpc-id ${{ env.VPC_ID }} --output text) || true
-          aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 443 --cidr 0.0.0.0/0 || true
+          SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name ${{ env.PROJECT }}-vpc-endpoint-migrate-sg-${{ env.ENV_VAR }} --description "Security group for VPC endpoint" --vpc-id ${{ env.VPC_ID }} --output text)
+          aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 443 --cidr 0.0.0.0/0
           echo "SECURITY_GROUP_ID=$SECURITY_GROUP_ID" >> $GITHUB_ENV
 
           echo "### VPCエンドポイントの作成 ###"
           VPC_ENDPOINT_ID_LOGS=$(aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.logs \
-            --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }} --query 'VpcEndpoint.VpcEndpointId' --output text) || true
+            --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }} --query 'VpcEndpoint.VpcEndpointId' --output text)
           VPC_ENDPOINT_ID_SECRETS_MANAGER=$(aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.secretsmanager \
-            --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }} --query 'VpcEndpoint.VpcEndpointId' --output text) || true
+            --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }} --query 'VpcEndpoint.VpcEndpointId' --output text)
           echo "VPC_ENDPOINT_ID_LOGS=$VPC_ENDPOINT_ID_LOGS" >> $GITHUB_ENV
           echo "VPC_ENDPOINT_ID_SECRETS_MANAGER=$VPC_ENDPOINT_ID_SECRETS_MANAGER" >> $GITHUB_ENV
         continue-on-error: true
