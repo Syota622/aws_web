@@ -105,8 +105,8 @@ jobs:
           echo "Security Group ID: $SECURITY_GROUP_ID"
           VPC_ENDPOINT_ID_LOGS=$(aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.logs --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }} --query 'VpcEndpoint.VpcEndpointId' --output text)
           VPC_ENDPOINT_ID_SECRETS_MANAGER=$(aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.secretsmanager --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }} --query 'VpcEndpoint.VpcEndpointId' --output text)
-          echo "VPC Endpoint ID (Logs): $VPC_ENDPOINT_ID_LOGS"
-          echo "VPC Endpoint ID (SecretsManager): $VPC_ENDPOINT_ID_SECRETS_MANAGER"
+          echo "VPC_ENDPOINT_ID_LOGS=$VPC_ENDPOINT_ID_LOGS" >> $GITHUB_ENV
+          echo "VPC_ENDPOINT_ID_SECRETS_MANAGER=$VPC_ENDPOINT_ID_SECRETS_MANAGER" >> $GITHUB_ENV
         continue-on-error: true
 
       # VPCエンドポイントのステータス確認
@@ -114,9 +114,12 @@ jobs:
         run: |
           echo "VPCエンドポイントのステータスを確認中..."
           while true; do
-            LOGS_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --filters "Name=service-name,Values=com.amazonaws.${{ env.AWS_REGION }}.logs" --query 'VpcEndpoints[0].State' --output text)
-            SECRETS_MANAGER_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --filters "Name=service-name,Values=com.amazonaws.${{ env.AWS_REGION }}.secretsmanager" --query 'VpcEndpoints[0].State' --output text)
-            
+            LOGS_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} --query 'VpcEndpoints[0].State' --output text)
+            SECRETS_MANAGER_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} --query 'VpcEndpoints[0].State' --output text)
+
+            echo "Logs Endpoint Status: $LOGS_ENDPOINT_STATUS"
+            echo "Secrets Manager Endpoint Status: $SECRETS_MANAGER_ENDPOINT_STATUS"
+
             if [ "$LOGS_ENDPOINT_STATUS" = "available" ] && [ "$SECRETS_MANAGER_ENDPOINT_STATUS" = "available" ]; then
               echo "両方のVPCエンドポイントが利用可能になりました。"
               break
@@ -137,14 +140,16 @@ jobs:
       - name: Delete VPC Endpoint & Security Group
         run: |
           # VPCエンドポイントを削除
-          aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $VPC_ENDPOINT_ID_LOGS
-          aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $VPC_ENDPOINT_ID_SECRETS_MANAGER
+          echo "Deleting VPC Endpoint for Logs: ${{ env.VPC_ENDPOINT_ID_LOGS }}"
+          aws ec2 delete-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }}
+          echo "Deleting VPC Endpoint for Secrets Manager: ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }}"
+          aws ec2 delete-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }}
 
           # VPCエンドポイントの削除が完了したかどうかを確認
           echo "VPCエンドポイントの削除状況を確認中..."
           while true; do
-            LOGS_ENDPOINT_COUNT=$(aws ec2 describe-vpc-endpoints --filters "Name=vpc-endpoint-id,Values=$VPC_ENDPOINT_ID_LOGS" --query 'VpcEndpoints[].VpcEndpointId' --output text | wc -w)
-            SECRETS_MANAGER_ENDPOINT_COUNT=$(aws ec2 describe-vpc-endpoints --filters "Name=vpc-endpoint-id,Values=$VPC_ENDPOINT_ID_SECRETS_MANAGER" --query 'VpcEndpoints[].VpcEndpointId' --output text | wc -w)
+            LOGS_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} --query 'VpcEndpoints[0].State' --output text)
+            SECRETS_MANAGER_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} --query 'VpcEndpoints[0].State' --output text)
             
             if [ "$LOGS_ENDPOINT_COUNT" -eq 0 ] && [ "$SECRETS_MANAGER_ENDPOINT_COUNT" -eq 0 ]; then
               echo "両方のVPCエンドポイントが正常に削除されました。"
