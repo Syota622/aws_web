@@ -84,7 +84,8 @@ jobs:
       - name: Build Lambda Container Image
         run: |
           docker build -t ${{ env.PROJECT }}-db-migration-lambda-${{ env.ENV_VAR }}:${{ github.sha }} -f backend/lambda/migrate/Dockerfile ./backend
-          docker tag ${{ env.PROJECT }}-db-migration-lambda-${{ env.ENV_VAR }}:${{ github.sha }} ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-db-migration-lambda-${{ env.ENV_VAR }}:${{ github.sha }}
+          docker tag ${{ env.PROJECT }}-db-migration-lambda-${{ env.ENV_VAR }}:${{ github.sha }} \
+            ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-db-migration-lambda-${{ env.ENV_VAR }}:${{ github.sha }}
 
       # LambdaコンテナイメージをECRにプッシュ
       - name: Push Lambda Container Image to ECR
@@ -100,11 +101,16 @@ jobs:
       # VPCエンドポイント作成(Logs&SecretsManager)
       - name: Create Security Group for VPC Endpoint
         run: |
+          echo "### SecurityGroupの作成 ###"
           SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name ${{ env.PROJECT }}-vpc-endpoint-migrate-sg-${{ env.ENV_VAR }} --description "Security group for VPC endpoint" --vpc-id ${{ env.VPC_ID }} --output text)
           aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 443 --cidr 0.0.0.0/0
-          echo "Security Group ID: $SECURITY_GROUP_ID"
-          VPC_ENDPOINT_ID_LOGS=$(aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.logs --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }} --query 'VpcEndpoint.VpcEndpointId' --output text)
-          VPC_ENDPOINT_ID_SECRETS_MANAGER=$(aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.secretsmanager --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }} --query 'VpcEndpoint.VpcEndpointId' --output text)
+          echo "SECURITY_GROUP_ID=$SECURITY_GROUP_ID" >> $GITHUB_ENV
+
+          echo "### VPCエンドポイントの作成 ###"
+          VPC_ENDPOINT_ID_LOGS=$(aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.logs \
+            --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }} --query 'VpcEndpoint.VpcEndpointId' --output text)
+          VPC_ENDPOINT_ID_SECRETS_MANAGER=$(aws ec2 create-vpc-endpoint --vpc-id ${{ env.VPC_ID }} --service-name com.amazonaws.${{ env.AWS_REGION }}.secretsmanager \
+            --vpc-endpoint-type Interface --security-group-ids $SECURITY_GROUP_ID --subnet-ids ${{ env.PRIVATE_SUBNET_ID_C }} ${{ env.PRIVATE_SUBNET_ID_D }} --query 'VpcEndpoint.VpcEndpointId' --output text)
           echo "VPC_ENDPOINT_ID_LOGS=$VPC_ENDPOINT_ID_LOGS" >> $GITHUB_ENV
           echo "VPC_ENDPOINT_ID_SECRETS_MANAGER=$VPC_ENDPOINT_ID_SECRETS_MANAGER" >> $GITHUB_ENV
         continue-on-error: true
@@ -114,8 +120,10 @@ jobs:
         run: |
           echo "VPCエンドポイントのステータスを確認中..."
           while true; do
-            LOGS_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} --query 'VpcEndpoints[0].State' --output text)
-            SECRETS_MANAGER_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} --query 'VpcEndpoints[0].State' --output text)
+            LOGS_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} \
+              --query 'VpcEndpoints[0].State' --output text)
+            SECRETS_MANAGER_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} \
+              --query 'VpcEndpoints[0].State' --output text)
 
             echo "Logs Endpoint Status: $LOGS_ENDPOINT_STATUS"
             echo "Secrets Manager Endpoint Status: $SECRETS_MANAGER_ENDPOINT_STATUS"
@@ -139,7 +147,7 @@ jobs:
       # VPCエンドポイント削除
       - name: Delete VPC Endpoint & Security Group
         run: |
-          # VPCエンドポイントを削除
+          echo "### VPCエンドポイントの削除 ###"
           echo "Deleting VPC Endpoint for Logs: ${{ env.VPC_ENDPOINT_ID_LOGS }}"
           aws ec2 delete-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} || true
           echo "Deleting VPC Endpoint for Secrets Manager: ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }}"
@@ -148,8 +156,8 @@ jobs:
           # VPCエンドポイントの削除が完了したかどうかを確認
           echo "VPCエンドポイントの削除状況を確認中..."
           while true; do
-            LOGS_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound" || true)
-            SECRETS_MANAGER_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound" || true)
+            LOGS_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound")
+            SECRETS_MANAGER_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound")
             
             if [ "$LOGS_ENDPOINT_EXISTS" -eq 1 ] && [ "$SECRETS_MANAGER_ENDPOINT_EXISTS" -eq 1 ]; then
               echo "両方のVPCエンドポイントが正常に削除されました。"
@@ -160,8 +168,8 @@ jobs:
             fi
           done
 
-          # セキュリティグループを削除
-          aws ec2 delete-security-group --group-id $SECURITY_GROUP_ID || true
+          echo "### セキュリティグループの削除 ###"
+          aws ec2 delete-security-group --group-id ${{ env.SECURITY_GROUP_ID }}
 
   # バックエンドのビルドとデプロイを行うジョブ
   build-and-deploy:
