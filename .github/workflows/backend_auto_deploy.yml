@@ -64,12 +64,6 @@ jobs:
     environment: 
       name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     steps:
-      # デバッグステップをここに追加
-      - name: Debug Output
-        run: |
-          echo "backend_changed: ${{ needs.check-changes.outputs.backend_changed }}"
-          echo "lambda_changed: ${{ needs.check-changes.outputs.lambda_changed }}"
-
       # リポジトリのコードをチェックアウト
       - name: Checkout Code
         uses: actions/checkout@v4
