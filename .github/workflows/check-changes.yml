@@ -29,4 +29,4 @@ jobs:
             - '.github/workflows/backend_auto_deploy.yml'
             - 'db/migrations/**'
           backend_changed:
-            - 'backend/**'            
+            - 'backend/**'
