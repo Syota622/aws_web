@@ -1,0 +1,44 @@
+# ワークフロー名の定義
+name: main workflow
+
+# ワークフローのトリガー設定
+on: 
+  push:
+    branches: 
+    - "develop"
+    # - "main"
+    - "feature/**"
+    paths:
+      - '.github/workflows/**'
+      - 'backend/**'
+      - 'db/migrations/**'
+      - 'lambda/migrate/**'
+
+# GitHub Actionsで利用するIAMロールの権限設定
+permissions:
+  id-token: write  # OIDCプロバイダーとの認証に必要
+  contents: read   # リポジトリの内容を読み取るために必要
+
+jobs:
+  # 変更のチェックを行うジョブ
+  check-changes:
+    uses: ./.github/workflows/check-changes.yml
+
+  # Lambdaのデプロイとマイグレーションを実行するジョブ
+  deploy-lambda-and-migrate:
+    needs: check-changes
+    if: needs.check-changes.outputs.lambda_changed == 'true'
+    uses: ./.github/workflows/deploy-lambda-and-migrate.yml
+    with:
+      # # main -> prod, develop -> dev, feature/* -> prod, その他 -> ''
+      env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+    secrets: inherit
+
+  # ECS(バックエンド)のビルドとデプロイを行うジョブ
+  ecs-build-and-deploy:
+    needs: [check-changes, deploy-lambda-and-migrate]
+    if: needs.check-changes.outputs.backend_changed == 'true'
+    uses: ./.github/workflows/ecs-build-and-deploy.yml
+    with:
+      env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+    secrets: inherit
