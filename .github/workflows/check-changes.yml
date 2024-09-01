@@ -13,13 +13,16 @@ on:
 jobs:
   check-changes:
     runs-on: ubuntu-22.04
+    # 変更のチェックを行うジョブ
     outputs:
       lambda_changed: ${{ steps.filter.outputs.lambda_changed }}
       backend_changed: ${{ steps.filter.outputs.backend_changed }}
+    # リポジトリのコードをチェックアウト
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
+    # パスのフィルターを適用することで、変更の有無を判定する
     - name: Check Paths
       uses: dorny/paths-filter@v3
       id: filter
