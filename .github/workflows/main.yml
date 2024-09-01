@@ -19,12 +19,6 @@ permissions:
   id-token: write  # OIDCプロバイダーとの認証に必要
   contents: read   # リポジトリの内容を読み取るために必要
 
-# 環境変数の設定
-env:
-  # ブランチに応じて環境変数を動的に設定
-  # main -> prod, develop -> dev, feature/* -> prod, その他 -> ''
-  ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
-
 jobs:
   check-changes:
     uses: ./.github/workflows/check-changes.yml
@@ -35,7 +29,8 @@ jobs:
     if: needs.check-changes.outputs.lambda_changed == 'true'
     uses: ./.github/workflows/deploy-lambda-and-migrate.yml
     with:
-      env_var: "${{ env.ENV_VAR }}"
+      # # main -> prod, develop -> dev, feature/* -> prod, その他 -> ''
+      env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     secrets: inherit
 
   # # ECS(バックエンド)のビルドとデプロイを行うジョブ
