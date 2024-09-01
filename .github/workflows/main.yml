@@ -9,7 +9,7 @@ on:
     - "main"
     - "feature/**"
     paths:
-      - '.github/workflows/backend_auto_deploy.yml'
+      - '.github/workflows/**'
       - 'backend/**'
       - 'db/migrations/**'
       - 'lambda/migrate/**'
