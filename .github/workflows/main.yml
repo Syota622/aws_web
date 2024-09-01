@@ -42,7 +42,12 @@ jobs:
     uses: ./.github/workflows/deploy-lambda-and-migrate.yml
     with:
       env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
-    secrets: inherit
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      PROJECT: ${{ secrets.PROJECT }}
+      VPC_ID: ${{ secrets.VPC_ID }}
+      PRIVATE_SUBNET_ID_C: ${{ secrets.PRIVATE_SUBNET_ID_C }}
+      PRIVATE_SUBNET_ID_D: ${{ secrets.PRIVATE_SUBNET_ID_D }}
 
   # # ECS(バックエンド)のビルドとデプロイを行うジョブ
   # build-and-deploy:
