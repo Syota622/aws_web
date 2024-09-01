@@ -35,6 +35,17 @@ jobs:
   check-changes:
     uses: ./.github/workflows/check-changes.yml
 
+  debug:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Echo Secrets (デバッグ用)
+        run: |
+          echo "AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}"
+          echo "PROJECT: ${{ secrets.PROJECT }}"
+          echo "VPC_ID: ${{ secrets.VPC_ID }}"
+          echo "PRIVATE_SUBNET_ID_C: ${{ secrets.PRIVATE_SUBNET_ID_C }}"
+          echo "PRIVATE_SUBNET_ID_D: ${{ secrets.PRIVATE_SUBNET_ID_D }}"
+
   # Lambdaのデプロイとマイグレーションを実行するジョブ
   deploy-lambda-and-migrate:
     needs: check-changes
