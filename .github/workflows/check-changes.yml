@@ -1,0 +1,32 @@
+name: Check Changes
+
+on:
+  workflow_call:
+    outputs:
+      lambda_changed:
+        description: "Flag indicating if Lambda-related files changed"
+        value: ${{ jobs.check-changes.outputs.lambda_changed }}
+      backend_changed:
+        description: "Flag indicating if backend-related files changed"
+        value: ${{ jobs.check-changes.outputs.backend_changed }}
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-22.04
+    outputs:
+      lambda_changed: ${{ steps.filter.outputs.lambda_changed }}
+      backend_changed: ${{ steps.filter.outputs.backend_changed }}
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Check Paths
+      uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          lambda_changed:
+            - '.github/workflows/backend_auto_deploy.yml'
+            - 'db/migrations/**'
+          backend_changed:
+            - 'backend/**'            
