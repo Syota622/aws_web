@@ -1,0 +1,90 @@
+name: ECS Build and Deploy
+
+on:
+  workflow_call:
+    inputs:
+      env_var:
+        required: true
+        type: string
+    # secrets:
+    #   AWS_ACCOUNT_ID:
+    #     required: true
+    #   PROJECT:
+    #     required: true
+    #   VPC_ID:
+    #     required: true
+    #   PRIVATE_SUBNET_ID_C:
+    #     required: true
+    #   PRIVATE_SUBNET_ID_D:
+    #     required: true
+
+env:
+  AWS_REGION: ap-northeast-1
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-22.04
+    environment: 
+      name: ${{ inputs.env_var }}
+    steps:
+      # リポジトリのコードをチェックアウト
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 環境変数の確認
+      - name: env Confirmation
+        run: |
+          echo "ENV_VAR: ${{ inputs.env_var }}"
+          echo "AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}"
+          echo "PROJECT: ${{ secrets.PROJECT }}"
+          echo "AWS_REGION: ${{ env.AWS_REGION }}"
+
+      # ARM64アーキテクチャのエミュレーションをセットアップ
+      - name: Set up QEMU for arm64
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      # Docker Buildxをセットアップ
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # バックエンドのDockerイメージをビルド
+      - name: Build Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: backend/docker/${{ inputs.env_var }}/Dockerfile 
+          platforms: linux/arm64
+          tags: ${{ secrets.PROJECT }}_image:latest
+          outputs: type=docker,dest=/tmp/${{ secrets.PROJECT }}_image.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # AWS認証情報を設定
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.PROJECT }}-github-actions-role
+          role-session-name: ${{ secrets.PROJECT }}-github-actions
+
+      # Amazon ECRにログイン
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ビルドしたバックエンドイメージをECRにプッシュ
+      - name: Push Backend Image to ECR
+        run: |
+          docker load --input /tmp/${{ secrets.PROJECT }}_image.tar
+          docker tag ${{ secrets.PROJECT }}_image:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:latest
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:latest
+
+      # ECSにデプロイ
+      - name: Deploy to ECS
+        run: |
+          export ECS_CLUSTER="${{ secrets.PROJECT }}-ecs-cluster-${{ inputs.env_var }}"
+          export ECS_SERVICE="${{ secrets.PROJECT }}-ecs-service-${{ inputs.env_var }}"
+          echo "ECS_CLUSTER: $ECS_CLUSTER"
+          echo "ECS_SERVICE: $ECS_SERVICE"
+          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment

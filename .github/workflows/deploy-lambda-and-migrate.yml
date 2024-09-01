@@ -31,14 +31,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Echo Secrets (デバッグ用)
-        run: |
-          echo "AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}"
-          echo "PROJECT: ${{ secrets.PROJECT }}"
-          echo "VPC_ID: ${{ secrets.VPC_ID }}"
-          echo "PRIVATE_SUBNET_ID_C: ${{ secrets.PRIVATE_SUBNET_ID_C }}"
-          echo "PRIVATE_SUBNET_ID_D: ${{ secrets.PRIVATE_SUBNET_ID_D }}"
-
       # AWS認証情報を設定
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

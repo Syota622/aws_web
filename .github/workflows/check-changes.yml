@@ -26,7 +26,8 @@ jobs:
       with:
         filters: |
           lambda_changed:
-            - '.github/workflows/**'
+            # - '.github/workflows/**'
             - 'db/migrations/**'
           backend_changed:
+            - '.github/workflows/**'
             - 'backend/**'
