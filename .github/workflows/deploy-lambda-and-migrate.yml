@@ -32,10 +32,26 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
+      # Docker Buildxをセットアップ
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       # Lambdaコンテナイメージをビルド
       - name: Build Lambda Container Image
         run: |
-          docker build -t ${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }} -f backend/lambda/migrate/Dockerfile ./backend
+          docker buildx create --use
+          docker buildx build \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            -t ${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }} \
+            -f backend/lambda/migrate/Dockerfile \
+            --load \
+            ./backend
+
+      # イメージにタグを付ける
+      - name: Tag Lambda Container Image
+        run: |
           docker tag ${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }} \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }}
 
