@@ -24,12 +24,12 @@ env:
   # ブランチに応じて環境変数を動的に設定
   # main -> prod, develop -> dev, feature/* -> prod, その他 -> ''
   ENV_VAR: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
-  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-  PROJECT: ${{ secrets.PROJECT }}
-  VPC_ID: ${{ secrets.VPC_ID }}
-  PRIVATE_SUBNET_ID_C: ${{ secrets.PRIVATE_SUBNET_ID_C }}
-  PRIVATE_SUBNET_ID_D: ${{ secrets.PRIVATE_SUBNET_ID_D }}
-  AWS_REGION: ap-northeast-1
+  # AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  # PROJECT: ${{ secrets.PROJECT }}
+  # VPC_ID: ${{ secrets.VPC_ID }}
+  # PRIVATE_SUBNET_ID_C: ${{ secrets.PRIVATE_SUBNET_ID_C }}
+  # PRIVATE_SUBNET_ID_D: ${{ secrets.PRIVATE_SUBNET_ID_D }}
+  # AWS_REGION: ap-northeast-1
 
 jobs:
   check-changes:
@@ -44,72 +44,72 @@ jobs:
       env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     secrets: inherit
 
-  # ECS(バックエンド)のビルドとデプロイを行うジョブ
-  build-and-deploy:
-    needs: [check-changes, deploy-lambda-and-migrate]
-    if: needs.check-changes.outputs.backend_changed == 'true'
-    runs-on: ubuntu-22.04
-    environment: 
-      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
-    steps:
-      # リポジトリのコードをチェックアウト
-      - name: Checkout Code
-        uses: actions/checkout@v4
+  # # ECS(バックエンド)のビルドとデプロイを行うジョブ
+  # build-and-deploy:
+  #   needs: [check-changes, deploy-lambda-and-migrate]
+  #   if: needs.check-changes.outputs.backend_changed == 'true'
+  #   runs-on: ubuntu-22.04
+  #   environment: 
+  #     name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+  #   steps:
+  #     # リポジトリのコードをチェックアウト
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
 
-      # 環境変数の確認
-      - name: env Confirmation
-        run: |
-          echo "ENV_VAR: ${{ env.ENV_VAR }}"
-          echo "AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}"
-          echo "PROJECT: ${{ env.PROJECT }}"
-          echo "AWS_REGION: ${{ env.AWS_REGION }}"
+  #     # 環境変数の確認
+  #     - name: env Confirmation
+  #       run: |
+  #         echo "ENV_VAR: ${{ env.ENV_VAR }}"
+  #         echo "AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}"
+  #         echo "PROJECT: ${{ env.PROJECT }}"
+  #         echo "AWS_REGION: ${{ env.AWS_REGION }}"
 
-      # ARM64アーキテクチャのエミュレーションをセットアップ
-      - name: Set up QEMU for arm64
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
+  #     # ARM64アーキテクチャのエミュレーションをセットアップ
+  #     - name: Set up QEMU for arm64
+  #       uses: docker/setup-qemu-action@v3
+  #       with:
+  #         platforms: arm64
 
-      # Docker Buildxをセットアップ
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  #     # Docker Buildxをセットアップ
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
 
-      # バックエンドのDockerイメージをビルド
-      - name: Build Backend Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: backend/docker/${{ env.ENV_VAR }}/Dockerfile 
-          platforms: linux/arm64
-          tags: ${{ env.PROJECT }}_image:latest
-          outputs: type=docker,dest=/tmp/${{ env.PROJECT }}_image.tar
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+  #     # バックエンドのDockerイメージをビルド
+  #     - name: Build Backend Image
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         file: backend/docker/${{ env.ENV_VAR }}/Dockerfile 
+  #         platforms: linux/arm64
+  #         tags: ${{ env.PROJECT }}_image:latest
+  #         outputs: type=docker,dest=/tmp/${{ env.PROJECT }}_image.tar
+  #         cache-from: type=gha
+  #         cache-to: type=gha,mode=max
 
-      # AWS認証情報を設定
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.PROJECT }}-github-actions-role
-          role-session-name: ${{ env.PROJECT }}-github-actions
+  #     # AWS認証情報を設定
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-region: ${{ env.AWS_REGION }}
+  #         role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.PROJECT }}-github-actions-role
+  #         role-session-name: ${{ env.PROJECT }}-github-actions
 
-      # Amazon ECRにログイン
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
+  #     # Amazon ECRにログイン
+  #     - name: Login to Amazon ECR
+  #       uses: aws-actions/amazon-ecr-login@v2
 
-      # ビルドしたバックエンドイメージをECRにプッシュ
-      - name: Push Backend Image to ECR
-        run: |
-          docker load --input /tmp/${{ env.PROJECT }}_image.tar
-          docker tag ${{ env.PROJECT }}_image:latest ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository-${{ env.ENV_VAR }}:latest
-          docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository-${{ env.ENV_VAR }}:latest
+  #     # ビルドしたバックエンドイメージをECRにプッシュ
+  #     - name: Push Backend Image to ECR
+  #       run: |
+  #         docker load --input /tmp/${{ env.PROJECT }}_image.tar
+  #         docker tag ${{ env.PROJECT }}_image:latest ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository-${{ env.ENV_VAR }}:latest
+  #         docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.PROJECT }}-private-repository-${{ env.ENV_VAR }}:latest
 
-      # ECSにデプロイ
-      - name: Deploy to ECS
-        run: |
-          export ECS_CLUSTER="${{ env.PROJECT }}-ecs-cluster-${{ env.ENV_VAR }}"
-          export ECS_SERVICE="${{ env.PROJECT }}-ecs-service-${{ env.ENV_VAR }}"
-          echo "ECS_CLUSTER: $ECS_CLUSTER"
-          echo "ECS_SERVICE: $ECS_SERVICE"
-          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
+  #     # ECSにデプロイ
+  #     - name: Deploy to ECS
+  #       run: |
+  #         export ECS_CLUSTER="${{ env.PROJECT }}-ecs-cluster-${{ env.ENV_VAR }}"
+  #         export ECS_SERVICE="${{ env.PROJECT }}-ecs-service-${{ env.ENV_VAR }}"
+  #         echo "ECS_CLUSTER: $ECS_CLUSTER"
+  #         echo "ECS_SERVICE: $ECS_SERVICE"
+  #         aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
