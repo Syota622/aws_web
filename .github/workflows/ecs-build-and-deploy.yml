@@ -6,17 +6,6 @@ on:
       env_var:
         required: true
         type: string
-    # secrets:
-    #   AWS_ACCOUNT_ID:
-    #     required: true
-    #   PROJECT:
-    #     required: true
-    #   VPC_ID:
-    #     required: true
-    #   PRIVATE_SUBNET_ID_C:
-    #     required: true
-    #   PRIVATE_SUBNET_ID_D:
-    #     required: true
 
 env:
   AWS_REGION: ap-northeast-1
