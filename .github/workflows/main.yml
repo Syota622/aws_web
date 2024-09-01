@@ -35,7 +35,7 @@ jobs:
     if: needs.check-changes.outputs.lambda_changed == 'true'
     uses: ./.github/workflows/deploy-lambda-and-migrate.yml
     with:
-      env_var: ${{ env.ENV_VAR }}
+      env_var: "${{ env.ENV_VAR }}"
     secrets: inherit
 
   # # ECS(バックエンド)のビルドとデプロイを行うジョブ
