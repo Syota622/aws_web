@@ -35,8 +35,7 @@ jobs:
 
   # ECS(バックエンド)のビルドとデプロイを行うジョブ
   ecs-build-and-deploy:
-    needs: [check-changes]
-    # needs: [check-changes, deploy-lambda-and-migrate]
+    needs: [check-changes, deploy-lambda-and-migrate]
     if: needs.check-changes.outputs.backend_changed == 'true'
     uses: ./.github/workflows/ecs-build-and-deploy.yml
     with:
