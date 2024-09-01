@@ -25,6 +25,9 @@ module "database" {
 
   # backend
   ecs_sg_id = module.backend.ecs_sg_id
+
+  # lambda
+  lambda_migrate_sg_id = module.lambda.lambda_migrate_sg_id
 }
 
 ## backend ###
@@ -45,9 +48,9 @@ module "backend" {
   secrets_manager_arn = module.database.secrets_manager_arn
 
   # cognito
-  basic_user_pool_arn = module.cognito.basic_user_pool_arn
+  basic_user_pool_arn            = module.cognito.basic_user_pool_arn
   basic_user_pool_client_back_id = module.cognito.basic_user_pool_client_back_id
-  basic_user_pool_domain = module.cognito.basic_user_pool_domain
+  basic_user_pool_domain         = module.cognito.basic_user_pool_domain
 }
 
 # ## frontend ###
@@ -75,5 +78,21 @@ module "cognito" {
   env    = var.env
 
   # backend
-  alb_dns     = module.backend.alb_dns
+  alb_dns = module.backend.alb_dns
+}
+
+## lambda ###
+module "lambda" {
+  source = "../../module/lambda"
+  pj     = var.pj
+  env    = var.env
+
+  # network
+  vpc_id               = module.network.vpc_id
+  private_subnet_c_ids = module.network.private_c_subnet_ids
+  private_subnet_d_ids = module.network.private_d_subnet_ids
+
+  # secretsmanager
+  secrets_manager_arn = module.database.secrets_manager_arn
+
 }

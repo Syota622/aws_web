@@ -14,7 +14,7 @@ resource "aws_lb" "ecs_alb" {
   #   prefix  = "log_alb"
   #   enabled = true
   # }
-}  
+}
 
 # Target Group
 resource "aws_lb_target_group" "ecs_tg" {
@@ -55,7 +55,7 @@ resource "aws_lb_listener" "https_listener" {
 
   default_action {
     type             = "forward"
-    order = 1
+    order            = 1
     target_group_arn = aws_lb_target_group.ecs_tg.arn
   }
 
