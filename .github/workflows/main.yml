@@ -41,7 +41,7 @@ jobs:
     if: needs.check-changes.outputs.lambda_changed == 'true'
     uses: ./.github/workflows/deploy-lambda-and-migrate.yml
     with:
-      env_var: ${{ env.ENV_VAR }}
+      env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       PROJECT: ${{ secrets.PROJECT }}
