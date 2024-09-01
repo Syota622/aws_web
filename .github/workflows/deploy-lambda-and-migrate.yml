@@ -68,7 +68,7 @@ jobs:
 
           VPC_ENDPOINT_ID_LOGS=$(aws ec2 create-vpc-endpoint --vpc-id "${{ secrets.VPC_ID }}" --service-name com.amazonaws."${{ env.AWS_REGION }}".logs \
             --vpc-endpoint-type Interface --security-group-ids "${{ env.SECURITY_GROUP_ID }}" --subnet-ids "${{ secrets.PRIVATE_SUBNET_ID_C }}" "${{ secrets.PRIVATE_SUBNET_ID_D }}" --query 'VpcEndpoint.VpcEndpointId' --output text)
-          VPC_ENDPOINT_ID_SECRETS_MANAGER=$(aws ec2 create-vpc-endpoint --vpc-id "${{ secrets.VPC_ID }}" --service-name com.amazonaws.$"{{ env.AWS_REGION }}".secretsmanager \
+          VPC_ENDPOINT_ID_SECRETS_MANAGER=$(aws ec2 create-vpc-endpoint --vpc-id "${{ secrets.VPC_ID }}" --service-name com.amazonaws."${{ env.AWS_REGION }}".secretsmanager \
             --vpc-endpoint-type Interface --security-group-ids "${{ env.SECURITY_GROUP_ID }}" --subnet-ids "${{ secrets.PRIVATE_SUBNET_ID_C }}" "${{ secrets.PRIVATE_SUBNET_ID_D }}" --query 'VpcEndpoint.VpcEndpointId' --output text)
           echo "VPC_ENDPOINT_ID_LOGS=$VPC_ENDPOINT_ID_LOGS" >> $GITHUB_ENV
           echo "VPC_ENDPOINT_ID_SECRETS_MANAGER=$VPC_ENDPOINT_ID_SECRETS_MANAGER" >> $GITHUB_ENV
