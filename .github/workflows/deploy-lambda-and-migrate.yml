@@ -24,6 +24,8 @@ env:
 jobs:
   deploy-and-migrate:
     runs-on: ubuntu-22.04
+    environment:
+      name: ${{ inputs.env_var }}
     steps:
       # リポジトリのコードをチェックアウト
       - name: Checkout Code
