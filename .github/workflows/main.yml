@@ -37,6 +37,8 @@ jobs:
 
   debug:
     runs-on: ubuntu-22.04
+    environment: 
+      name: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     steps:
       - name: Echo Secrets (デバッグ用)
         run: |
