@@ -1,5 +1,5 @@
 # ワークフロー名の定義
-name: Backend Deploy with Lambda Migration
+name: main workflow
 
 # ワークフローのトリガー設定
 on: 
