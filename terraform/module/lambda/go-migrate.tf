@@ -20,7 +20,7 @@ resource "aws_lambda_function" "migration_lambda" {
   memory_size   = 128
 
   package_type = "Image"
-  image_uri    = "${aws_ecr_repository.migration_repo.repository_url}:latest"
+  image_uri    = "${aws_ecr_repository.migration_repo.repository_url}:<image uri>" # GitHub ActionsでビルドしたイメージのURIを指定
 
   environment {
     variables = {
