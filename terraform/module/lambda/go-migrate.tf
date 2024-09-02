@@ -36,6 +36,12 @@ resource "aws_lambda_function" "migration_lambda" {
   tags = {
     Name = "${var.pj}-db-migration-lambda-${var.env}"
   }
+
+  lifecycle {
+    ignore_changes = [
+      image_uri
+    ]
+  }
 }
 
 # Lambda用のセキュリティグループ
