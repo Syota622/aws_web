@@ -67,6 +67,11 @@ jobs:
         run: |
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }}
 
+      # # タスク定義のimage uriを${{ github.sha }}に更新
+      # - name: Update Task Definition Image URI
+      #   run: |
+      #     aws ecs update-task-set --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-set $ECS_TASK_SET --task-definition $ECS_TASK_DEFINITION
+
       # ECSにデプロイ
       - name: Deploy to ECS
         run: |
