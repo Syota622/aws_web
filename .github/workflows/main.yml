@@ -34,13 +34,26 @@ jobs:
       env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     secrets: inherit
 
-  # ECS(バックエンド)のビルドとデプロイを行うジョブ
   ecs-build-and-deploy:
     needs: [check-changes, deploy-lambda-and-migrate]
     if: |
+      always() &&
       needs.check-changes.outputs.backend_changed == 'true' &&
       (needs.deploy-lambda-and-migrate.result == 'success' || needs.deploy-lambda-and-migrate.result == 'skipped')
     uses: ./.github/workflows/ecs-build-and-deploy.yml
     with:
       env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     secrets: inherit
+
+  debug-job-status:
+    needs: [check-changes, deploy-lambda-and-migrate, ecs-build-and-deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug Job Status
+        run: |
+          echo "check-changes result: ${{ needs.check-changes.result }}"
+          echo "lambda_changed: ${{ needs.check-changes.outputs.lambda_changed }}"
+          echo "backend_changed: ${{ needs.check-changes.outputs.backend_changed }}"
+          echo "deploy-lambda-and-migrate result: ${{ needs.deploy-lambda-and-migrate.result }}"
+          echo "ecs-build-and-deploy result: ${{ needs.ecs-build-and-deploy.result }}"
