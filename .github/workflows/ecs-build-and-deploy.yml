@@ -67,7 +67,7 @@ jobs:
         run: |
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }}
 
-      # タスク定義を更新
+      # タスク定義を更新(github.shaのイメージを使用)
       - name: Update ECS task definition
         run: |
           TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition ${{ secrets.PROJECT }}-task-definition-${{ inputs.env_var }} --query taskDefinition)
