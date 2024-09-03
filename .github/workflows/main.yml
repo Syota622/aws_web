@@ -34,6 +34,7 @@ jobs:
       env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     secrets: inherit
 
+  # ECSのビルドとデプロイを実行するジョブ
   ecs-build-and-deploy:
     needs: [check-changes, deploy-lambda-and-migrate]
     if: |
@@ -45,6 +46,7 @@ jobs:
       env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     secrets: inherit
 
+  # デバッグ用のジョブ
   debug-job-status:
     needs: [check-changes, deploy-lambda-and-migrate, ecs-build-and-deploy]
     if: always()
