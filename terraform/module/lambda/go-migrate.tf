@@ -12,6 +12,28 @@ resource "aws_ecr_repository" "migration_repo" {
   }
 }
 
+resource "aws_ecr_lifecycle_policy" "migration_private_repository_policy" {
+  repository = aws_ecr_repository.migration_repo.name
+  policy     = <<POLICY
+    {
+      "rules": [
+        {
+          "rulePriority": 1,
+          "description": "Expire images older than 1 day",
+          "selection": {
+            "tagStatus": "any",
+            "countType": "imageCountMoreThan",
+            "countNumber": 7
+          },
+          "action": {
+            "type": "expire"
+          }
+        }
+      ]
+    }
+  POLICY
+}
+
 # Lambda関数の定義
 resource "aws_lambda_function" "migration_lambda" {
   function_name = "${var.pj}-db-migration-lambda-${var.env}"

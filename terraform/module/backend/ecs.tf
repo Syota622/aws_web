@@ -69,7 +69,7 @@ resource "aws_ecs_service" "ecs_service" {
   # ECS Exec(Fargate Connection)
   enable_execute_command = true
 
-  desired_count = 1
+  desired_count = 0
 
   network_configuration {
     subnets          = [var.public_subnet_c_ids, var.public_subnet_d_ids]

@@ -18,21 +18,21 @@ resource "aws_ecr_repository" "private_repository" {
 resource "aws_ecr_lifecycle_policy" "private_repository_policy" {
   repository = aws_ecr_repository.private_repository.name
   policy     = <<POLICY
-{
-  "rules": [
     {
-      "rulePriority": 1,
-      "description": "Expire images older than 1 day",
-      "selection": {
-        "tagStatus": "any",
-        "countType": "imageCountMoreThan",
-        "countNumber": 20
-      },
-      "action": {
-        "type": "expire"
-      }
+      "rules": [
+        {
+          "rulePriority": 1,
+          "description": "Expire images older than 1 day",
+          "selection": {
+            "tagStatus": "any",
+            "countType": "imageCountMoreThan",
+            "countNumber": 7
+          },
+          "action": {
+            "type": "expire"
+          }
+        }
+      ]
     }
-  ]
-}
-POLICY
+  POLICY
 }
