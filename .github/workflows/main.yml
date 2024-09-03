@@ -35,6 +35,7 @@ jobs:
     secrets: inherit
 
   # ECSのビルドとデプロイを実行するジョブ
+  # needsの影響で、deploy-lambda-and-migrateがスキップされた場合は、ecs-build-and-deployもスキップされるのを防ぐために、always()を利用する
   ecs-build-and-deploy:
     needs: [check-changes, deploy-lambda-and-migrate]
     if: |
