@@ -12,6 +12,28 @@ resource "aws_ecr_repository" "migration_repo" {
   }
 }
 
+resource "aws_ecr_lifecycle_policy" "migration_private_repository_policy" {
+  repository = aws_ecr_repository.migration_repo.name
+  policy     = <<POLICY
+    {
+      "rules": [
+        {
+          "rulePriority": 1,
+          "description": "Expire images older than 1 day",
+          "selection": {
+            "tagStatus": "any",
+            "countType": "imageCountMoreThan",
+            "countNumber": 7
+          },
+          "action": {
+            "type": "expire"
+          }
+        }
+      ]
+    }
+  POLICY
+}
+
 # Lambda関数の定義
 resource "aws_lambda_function" "migration_lambda" {
   function_name = "${var.pj}-db-migration-lambda-${var.env}"
@@ -20,7 +42,7 @@ resource "aws_lambda_function" "migration_lambda" {
   memory_size   = 128
 
   package_type = "Image"
-  image_uri    = "${aws_ecr_repository.migration_repo.repository_url}:latest"
+  image_uri    = "${aws_ecr_repository.migration_repo.repository_url}:<image-uri>" # GitHub ActionsでビルドしたイメージのURIを指定
 
   environment {
     variables = {
@@ -35,6 +57,12 @@ resource "aws_lambda_function" "migration_lambda" {
 
   tags = {
     Name = "${var.pj}-db-migration-lambda-${var.env}"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      image_uri
+    ]
   }
 }
 

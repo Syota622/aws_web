@@ -20,13 +20,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 環境変数の確認
-      - name: env Confirmation
-        run: |
-          echo "ENV_VAR: ${{ inputs.env_var }}"
-          echo "AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}"
-          echo "PROJECT: ${{ secrets.PROJECT }}"
-          echo "AWS_REGION: ${{ env.AWS_REGION }}"
+      # AWS認証情報を設定
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.PROJECT }}-github-actions-role
+          role-session-name: ${{ secrets.PROJECT }}-github-actions
+
+      # Amazon ECRにログイン
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
       # ARM64アーキテクチャのエミュレーションをセットアップ
       - name: Set up QEMU for arm64
@@ -40,34 +44,39 @@ jobs:
 
       # バックエンドのDockerイメージをビルド
       - name: Build Backend Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: backend/docker/${{ inputs.env_var }}/Dockerfile 
-          platforms: linux/arm64
-          tags: ${{ secrets.PROJECT }}_image:latest
-          outputs: type=docker,dest=/tmp/${{ secrets.PROJECT }}_image.tar
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+        run: |
+          docker buildx create --use
+          docker buildx build \
+            --platform linux/arm64 \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            -t ${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }} \
+            -f backend/docker/${{ inputs.env_var }}/Dockerfile \
+            --load \
+            .
 
-      # AWS認証情報を設定
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.PROJECT }}-github-actions-role
-          role-session-name: ${{ secrets.PROJECT }}-github-actions
+      # イメージにタグを付ける
+      - name: Tag Backend Image
+        run: |
+          docker tag ${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }} \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }}
 
-      # Amazon ECRにログイン
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
-
-      # ビルドしたバックエンドイメージをECRにプッシュ
+      # バックエンドイメージをECRにプッシュ
       - name: Push Backend Image to ECR
         run: |
-          docker load --input /tmp/${{ secrets.PROJECT }}_image.tar
-          docker tag ${{ secrets.PROJECT }}_image:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:latest
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:latest
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }}
+
+      # タスク定義を更新(github.shaのイメージを使用)
+      - name: Update ECS task definition
+        run: |
+          TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "${{ secrets.PROJECT }}-task-definition-${{ inputs.env_var }}" --query taskDefinition)
+          NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }}" '
+            del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy) |
+            .containerDefinitions[0].image = $IMAGE
+          ')
+          NEW_TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION" --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "NEW_TASK_DEFINITION_ARN=$NEW_TASK_DEFINITION_ARN" >> "$GITHUB_ENV"
 
       # ECSにデプロイ
       - name: Deploy to ECS
@@ -76,4 +85,4 @@ jobs:
           export ECS_SERVICE="${{ secrets.PROJECT }}-ecs-service-${{ inputs.env_var }}"
           echo "ECS_CLUSTER: $ECS_CLUSTER"
           echo "ECS_SERVICE: $ECS_SERVICE"
-          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
+          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $NEW_TASK_DEFINITION_ARN --force-new-deployment

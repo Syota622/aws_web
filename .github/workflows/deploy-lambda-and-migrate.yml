@@ -72,6 +72,7 @@ jobs:
           echo "### SecurityGroupの作成 ###"
           SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name "${{ secrets.PROJECT }}-vpc-endpoint-migrate-sg-${{ inputs.env_var }}" --description "Security group for VPC endpoint" --vpc-id "${{ secrets.VPC_ID }}" --output text)
           aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 443 --cidr 0.0.0.0/0
+
           echo "SecurityGroup ID: $SECURITY_GROUP_ID"
           echo "SECURITY_GROUP_ID=$SECURITY_GROUP_ID" >> $GITHUB_ENV
         continue-on-error: true
@@ -86,6 +87,7 @@ jobs:
             --vpc-endpoint-type Interface --security-group-ids "${{ env.SECURITY_GROUP_ID }}" --subnet-ids "${{ secrets.PRIVATE_SUBNET_ID_C }}" "${{ secrets.PRIVATE_SUBNET_ID_D }}" --query 'VpcEndpoint.VpcEndpointId' --output text)
           VPC_ENDPOINT_ID_SECRETS_MANAGER=$(aws ec2 create-vpc-endpoint --vpc-id "${{ secrets.VPC_ID }}" --service-name com.amazonaws."${{ env.AWS_REGION }}".secretsmanager \
             --vpc-endpoint-type Interface --security-group-ids "${{ env.SECURITY_GROUP_ID }}" --subnet-ids "${{ secrets.PRIVATE_SUBNET_ID_C }}" "${{ secrets.PRIVATE_SUBNET_ID_D }}" --query 'VpcEndpoint.VpcEndpointId' --output text)
+
           echo "VPC_ENDPOINT_ID_LOGS=$VPC_ENDPOINT_ID_LOGS" >> $GITHUB_ENV
           echo "VPC_ENDPOINT_ID_SECRETS_MANAGER=$VPC_ENDPOINT_ID_SECRETS_MANAGER" >> $GITHUB_ENV
         continue-on-error: true
@@ -125,6 +127,7 @@ jobs:
           echo "### VPCエンドポイントの削除 ###"
           echo "Deleting VPC Endpoint for Logs: ${{ env.VPC_ENDPOINT_ID_LOGS }}"
           aws ec2 delete-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} || true
+
           echo "Deleting VPC Endpoint for Secrets Manager: ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }}"
           aws ec2 delete-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} || true
 

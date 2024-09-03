@@ -26,10 +26,12 @@ resource "aws_ecs_task_definition" "task_definition" {
     cpu_architecture        = "ARM64"
   }
 
+  # コンテナ定義
   container_definitions = jsonencode([{
     name = "${var.pj}-container-${var.env}",
-    # ECRのイメージを指定
-    image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-private-repository-${var.env}:latest",
+
+    # ECRのイメージを指定: GitHub ActionsでビルドしたイメージのURIを指定
+    image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-private-repository-${var.env}:<image-uri>", 
     portMappings = [{
       containerPort = 8080,
       hostPort      = 8080
@@ -57,6 +59,12 @@ resource "aws_ecs_task_definition" "task_definition" {
       },
     ]
   }])
+
+  lifecycle {
+    ignore_changes = [
+      image_uri
+    ]
+  }
 }
 
 ### ECS Service ###
@@ -69,7 +77,7 @@ resource "aws_ecs_service" "ecs_service" {
   # ECS Exec(Fargate Connection)
   enable_execute_command = true
 
-  desired_count = 1
+  desired_count = 0
 
   network_configuration {
     subnets          = [var.public_subnet_c_ids, var.public_subnet_d_ids]
