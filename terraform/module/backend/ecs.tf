@@ -29,6 +29,7 @@ resource "aws_ecs_task_definition" "task_definition" {
   # コンテナ定義
   container_definitions = jsonencode([{
     name = "${var.pj}-container-${var.env}",
+
     # ECRのイメージを指定: GitHub ActionsでビルドしたイメージのURIを指定
     image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-private-repository-${var.env}:<image-uri>", 
     portMappings = [{
