@@ -50,8 +50,8 @@ jobs:
         run: |
           docker buildx create --use
           docker buildx build \
-            --cache-from type=gha \
-            --cache-to type=gha,mode=max \
+            --cache-from type=gha,src=/tmp/.buildx-cache \
+            --cache-to type=gha,dest=/tmp/.buildx-cache,mode=max \
             -t ${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }} \
             -f backend/lambda/migrate/Dockerfile \
             --load \
