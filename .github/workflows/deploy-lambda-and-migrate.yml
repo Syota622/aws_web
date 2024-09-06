@@ -36,22 +36,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # # Dockerキャッシュをセットアップ（キャッシュテスト）
-      # - name: Cache Docker layers
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: /tmp/.buildx-cache-lambda-migrate
-      #     key: ${{ runner.os }}-buildx-lambda-migrate-${{ github.sha }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-buildx-lambda-migrate-
-
-      - name: Debug cache
-        run: |
-          echo "Cache directory contents:"
-          ls -la /tmp/.buildx-cache-lambda-migrate || echo "Cache directory not found"
-          echo "Docker Buildx version:"
-          docker buildx version
-
+      # Dockerキャッシュをセットアップ
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
@@ -61,9 +46,11 @@ jobs:
             ${{ runner.os }}-buildx-lambda-migrate-
         id: cache
 
+      # キャッシュステータスの確認
       - name: Check cache status
-        run: echo ${{ steps.cache.outputs.cache-hit }}
-        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          echo "Cache key: ${{ steps.cache.outputs.cache-primary-key }}"
+          echo "Cache restored from key: ${{ steps.cache.outputs.cache-matched-key }}"
 
       # Lambdaコンテナイメージをビルド
       - name: Build Lambda Container Image
