@@ -60,9 +60,15 @@ jobs:
             -t ${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }} \
             -f backend/docker/${{ inputs.env_var }}/Dockerfile \
             --cache-from type=local,src=/tmp/.buildx-cache-ecs \
-            --cache-to type=local,dest=/tmp/.buildx-cache-ecs,mode=max \
+            --cache-to type=local,dest=/tmp/.buildx-cache-ecs-new,mode=max \
             --load \
             .
+
+      # キャッシュを移動
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache-ecs
+          mv /tmp/.buildx-cache-ecs-new /tmp/.buildx-cache-ecs
 
       # イメージにタグを付ける
       - name: Tag Backend Image
