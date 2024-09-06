@@ -44,13 +44,6 @@ jobs:
           key: ${{ runner.os }}-buildx-lambda-migrate-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-lambda-migrate-
-        id: cache
-
-      # キャッシュステータスの確認
-      - name: Check cache status
-        run: |
-          echo "Cache key: ${{ steps.cache.outputs.cache-primary-key }}"
-          echo "Cache restored from key: ${{ steps.cache.outputs.cache-matched-key }}"
 
       # Lambdaコンテナイメージをビルド
       - name: Build Lambda Container Image
