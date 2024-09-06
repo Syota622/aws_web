@@ -70,33 +70,33 @@ jobs:
           rm -rf /tmp/.buildx-cache-ecs
           mv /tmp/.buildx-cache-ecs-new /tmp/.buildx-cache-ecs
 
-      # # イメージにタグを付ける
-      # - name: Tag Backend Image
-      #   run: |
-      #     docker tag ${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }} \
-      #       ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }}
+      # イメージにタグを付ける
+      - name: Tag Backend Image
+        run: |
+          docker tag ${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }} \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }}
 
-      # # バックエンドイメージをECRにプッシュ
-      # - name: Push Backend Image to ECR
-      #   run: |
-      #     docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }}
+      # バックエンドイメージをECRにプッシュ
+      - name: Push Backend Image to ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }}
 
-      # # タスク定義を更新(github.shaのイメージを使用)
-      # - name: Update ECS task definition
-      #   run: |
-      #     TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "${{ secrets.PROJECT }}-task-definition-${{ inputs.env_var }}" --query taskDefinition)
-      #     NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }}" '
-      #       del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy) |
-      #       .containerDefinitions[0].image = $IMAGE
-      #     ')
-      #     NEW_TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION" --query 'taskDefinition.taskDefinitionArn' --output text)
-      #     echo "NEW_TASK_DEFINITION_ARN=$NEW_TASK_DEFINITION_ARN" >> "$GITHUB_ENV"
+      # タスク定義を更新(github.shaのイメージを使用)
+      - name: Update ECS task definition
+        run: |
+          TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "${{ secrets.PROJECT }}-task-definition-${{ inputs.env_var }}" --query taskDefinition)
+          NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }}" '
+            del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy) |
+            .containerDefinitions[0].image = $IMAGE
+          ')
+          NEW_TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION" --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "NEW_TASK_DEFINITION_ARN=$NEW_TASK_DEFINITION_ARN" >> "$GITHUB_ENV"
 
-      # # ECSにデプロイ
-      # - name: Deploy to ECS
-      #   run: |
-      #     export ECS_CLUSTER="${{ secrets.PROJECT }}-ecs-cluster-${{ inputs.env_var }}"
-      #     export ECS_SERVICE="${{ secrets.PROJECT }}-ecs-service-${{ inputs.env_var }}"
-      #     echo "ECS_CLUSTER: $ECS_CLUSTER"
-      #     echo "ECS_SERVICE: $ECS_SERVICE"
-      #     aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $NEW_TASK_DEFINITION_ARN --force-new-deployment
+      # ECSにデプロイ
+      - name: Deploy to ECS
+        run: |
+          export ECS_CLUSTER="${{ secrets.PROJECT }}-ecs-cluster-${{ inputs.env_var }}"
+          export ECS_SERVICE="${{ secrets.PROJECT }}-ecs-service-${{ inputs.env_var }}"
+          echo "ECS_CLUSTER: $ECS_CLUSTER"
+          echo "ECS_SERVICE: $ECS_SERVICE"
+          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $NEW_TASK_DEFINITION_ARN --force-new-deployment
