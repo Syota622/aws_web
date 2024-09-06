@@ -45,7 +45,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-lambda-migrate-
 
-      # Lambdaコンテナイメージをビルド
+      # Lambdaコンテナイメージをビルド(type=local)
       - name: Build Lambda Container Image
         run: |
           docker buildx create --use
