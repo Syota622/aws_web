@@ -36,14 +36,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # # Dockerキャッシュをセットアップ
-      # - name: Cache Docker layers
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: /tmp/.buildx-cache
-      #     key: ${{ runner.os }}-buildx-lambda-migrate-${{ github.sha }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-buildx-lambda-migrate-
+      # Dockerキャッシュをセットアップ
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache-lambda-migrate
+          key: ${{ runner.os }}-buildx-lambda-migrate-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-lambda-migrate-
 
       # Lambdaコンテナイメージをビルド
       - name: Build Lambda Container Image
@@ -52,10 +52,16 @@ jobs:
           docker buildx build \
             -t ${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }} \
             -f backend/lambda/migrate/Dockerfile \
-            --cache-from type=gha \
-            --cache-to type=gha,mode=max \
+            --cache-from type=local,src=/tmp/.buildx-cache-lambda-migrate \
+            --cache-to type=local,dest=/tmp/.buildx-cache-lambda-migrate-new,mode=max \
             --load \
             ./backend
+
+      # キャッシュを移動
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache-lambda-migrate
+          mv /tmp/.buildx-cache-lambda-migrate-new /tmp/.buildx-cache-lambda-migrate
 
       # # イメージにタグを付ける
       # - name: Tag Lambda Container Image
