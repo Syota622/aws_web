@@ -51,7 +51,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-ecs-
 
-      # バックエンドのDockerイメージをビルド
+      # バックエンドのDockerイメージをビルド(type=local)
       - name: Build Backend Image
         run: |
           docker buildx create --use
