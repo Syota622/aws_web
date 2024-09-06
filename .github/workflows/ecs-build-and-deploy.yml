@@ -46,7 +46,7 @@ jobs:
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
-          path: /tmp/.buildx-cache
+          path: /tmp/.buildx-cache-ecs
           key: ${{ runner.os }}-buildx-ecs-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-ecs-
@@ -57,8 +57,8 @@ jobs:
           docker buildx create --use
           docker buildx build \
             --platform linux/arm64 \
-            --cache-from type=gha,src=/tmp/.buildx-cache \
-            --cache-to type=gha,dest=/tmp/.buildx-cache,mode=max \
+            --cache-from type=gha,src=/tmp/.buildx-cache-ecs \
+            --cache-to type=gha,dest=/tmp/.buildx-cache-ecs,mode=max \
             -t ${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }} \
             -f backend/docker/${{ inputs.env_var }}/Dockerfile \
             --load \
