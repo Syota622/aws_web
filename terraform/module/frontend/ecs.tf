@@ -31,7 +31,7 @@ resource "aws_ecs_task_definition" "frontend_task_definition" {
     name = "${var.pj}-frontend-container-${var.env}",
 
     # ECRのイメージを指定: GitHub ActionsでビルドしたイメージのURIを指定
-    image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-frontend-private-repository-${var.env}:image-uri", 
+    image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-frontend-private-repository-${var.env}:latest", 
     portMappings = [{
       containerPort = 3000,
       hostPort      = 3000
@@ -55,11 +55,11 @@ resource "aws_ecs_task_definition" "frontend_task_definition" {
     # ]
   }])
 
-  lifecycle {
-    ignore_changes = [
-      container_definitions
-    ]
-  }
+  # lifecycle {
+  #   ignore_changes = [
+  #     container_definitions
+  #   ]
+  # }
 }
 
 ### ECS Service ###
@@ -89,6 +89,12 @@ resource "aws_ecs_service" "frontend_ecs_service" {
     target_group_arn = aws_lb_target_group.frontend_ecs_tg.arn
     container_name   = "${var.pj}-frontend-container-${var.env}"
     container_port   = 3000
+  }
+
+  lifecycle {
+    ignore_changes = [
+      desired_count
+    ]
   }
 }
 

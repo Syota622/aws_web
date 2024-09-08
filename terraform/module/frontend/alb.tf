@@ -29,7 +29,7 @@ resource "aws_lb_target_group" "frontend_ecs_tg" {
     unhealthy_threshold = 3
     timeout             = 5
     interval            = 30
-    path                = "/graphiql"
+    path                = "/"
     protocol            = "HTTP"
     matcher             = "200-299"
   }
