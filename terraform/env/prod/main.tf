@@ -82,6 +82,10 @@ module "domain" {
   # backend
   alb_dns     = module.backend.alb_dns
   alb_zone_id = module.backend.alb_zone_id
+
+  # frontend
+  frontend_alb_dns     = module.frontend.frontend_alb_dns
+  frontend_alb_zone_id = module.frontend.frontend_alb_zone_id
 }
 
 ## cognito ###

@@ -18,6 +18,18 @@ resource "aws_route53_record" "prod_record" {
   }
 }
 
+resource "aws_route53_record" "frontend_prod_record" {
+  zone_id = aws_route53_zone.learn_com.zone_id
+  name    = "mokokero.com"
+  type    = "A"
+
+  alias {
+    name                   = var.frontend_alb_dns
+    zone_id                = var.frontend_alb_zone_id
+    evaluate_target_health = true
+  }
+}
+
 resource "aws_route53_record" "cert_validation" {
   for_each = {
     for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => {
