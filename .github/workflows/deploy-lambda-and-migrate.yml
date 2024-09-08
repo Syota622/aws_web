@@ -63,111 +63,111 @@ jobs:
           rm -rf /tmp/.buildx-cache-lambda-migrate
           mv /tmp/.buildx-cache-lambda-migrate-new /tmp/.buildx-cache-lambda-migrate
 
-      # # イメージにタグを付ける
-      # - name: Tag Lambda Container Image
-      #   run: |
-      #     docker tag ${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }} \
-      #       ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }}
+      # イメージにタグを付ける
+      - name: Tag Lambda Container Image
+        run: |
+          docker tag ${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }} \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }}
 
-      # # LambdaコンテナイメージをECRにプッシュ
-      # - name: Push Lambda Container Image to ECR
-      #   run: |
-      #     docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }}
+      # LambdaコンテナイメージをECRにプッシュ
+      - name: Push Lambda Container Image to ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }}
 
-      # # Lambda関数を更新
-      # - name: Update Lambda Function
-      #   run: |
-      #     aws lambda update-function-code --function-name ${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }} \
-      #       --image-uri ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }}
+      # Lambda関数を更新
+      - name: Update Lambda Function
+        run: |
+          aws lambda update-function-code --function-name ${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }} \
+            --image-uri ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }}:${{ github.sha }}
 
-      # # セキュリティグループの作成
-      # - name: Create Security Group
-      #   run: |
-      #     echo "### SecurityGroupの作成 ###"
-      #     SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name "${{ secrets.PROJECT }}-vpc-endpoint-migrate-sg-${{ inputs.env_var }}" --description "Security group for VPC endpoint" --vpc-id "${{ secrets.VPC_ID }}" --output text)
-      #     aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 443 --cidr 0.0.0.0/0
+      # セキュリティグループの作成
+      - name: Create Security Group
+        run: |
+          echo "### SecurityGroupの作成 ###"
+          SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name "${{ secrets.PROJECT }}-vpc-endpoint-migrate-sg-${{ inputs.env_var }}" --description "Security group for VPC endpoint" --vpc-id "${{ secrets.VPC_ID }}" --output text)
+          aws ec2 authorize-security-group-ingress --group-id $SECURITY_GROUP_ID --protocol tcp --port 443 --cidr 0.0.0.0/0
 
-      #     echo "SecurityGroup ID: $SECURITY_GROUP_ID"
-      #     echo "SECURITY_GROUP_ID=$SECURITY_GROUP_ID" >> $GITHUB_ENV
-      #   continue-on-error: true
+          echo "SecurityGroup ID: $SECURITY_GROUP_ID"
+          echo "SECURITY_GROUP_ID=$SECURITY_GROUP_ID" >> $GITHUB_ENV
+        continue-on-error: true
       
-      # # VPCエンドポイント作成(Logs&SecretsManager)
-      # - name: Create VPC Endpoint
-      #   run: |
-      #     echo "### VPCエンドポイントの作成 ###"
-      #     echo "SecurityGroup ID: ${{ env.SECURITY_GROUP_ID }}"
+      # VPCエンドポイント作成(Logs&SecretsManager)
+      - name: Create VPC Endpoint
+        run: |
+          echo "### VPCエンドポイントの作成 ###"
+          echo "SecurityGroup ID: ${{ env.SECURITY_GROUP_ID }}"
 
-      #     VPC_ENDPOINT_ID_LOGS=$(aws ec2 create-vpc-endpoint --vpc-id "${{ secrets.VPC_ID }}" --service-name com.amazonaws."${{ env.AWS_REGION }}".logs \
-      #       --vpc-endpoint-type Interface --security-group-ids "${{ env.SECURITY_GROUP_ID }}" --subnet-ids "${{ secrets.PRIVATE_SUBNET_ID_C }}" "${{ secrets.PRIVATE_SUBNET_ID_D }}" --query 'VpcEndpoint.VpcEndpointId' --output text)
-      #     VPC_ENDPOINT_ID_SECRETS_MANAGER=$(aws ec2 create-vpc-endpoint --vpc-id "${{ secrets.VPC_ID }}" --service-name com.amazonaws."${{ env.AWS_REGION }}".secretsmanager \
-      #       --vpc-endpoint-type Interface --security-group-ids "${{ env.SECURITY_GROUP_ID }}" --subnet-ids "${{ secrets.PRIVATE_SUBNET_ID_C }}" "${{ secrets.PRIVATE_SUBNET_ID_D }}" --query 'VpcEndpoint.VpcEndpointId' --output text)
+          VPC_ENDPOINT_ID_LOGS=$(aws ec2 create-vpc-endpoint --vpc-id "${{ secrets.VPC_ID }}" --service-name com.amazonaws."${{ env.AWS_REGION }}".logs \
+            --vpc-endpoint-type Interface --security-group-ids "${{ env.SECURITY_GROUP_ID }}" --subnet-ids "${{ secrets.PRIVATE_SUBNET_ID_C }}" "${{ secrets.PRIVATE_SUBNET_ID_D }}" --query 'VpcEndpoint.VpcEndpointId' --output text)
+          VPC_ENDPOINT_ID_SECRETS_MANAGER=$(aws ec2 create-vpc-endpoint --vpc-id "${{ secrets.VPC_ID }}" --service-name com.amazonaws."${{ env.AWS_REGION }}".secretsmanager \
+            --vpc-endpoint-type Interface --security-group-ids "${{ env.SECURITY_GROUP_ID }}" --subnet-ids "${{ secrets.PRIVATE_SUBNET_ID_C }}" "${{ secrets.PRIVATE_SUBNET_ID_D }}" --query 'VpcEndpoint.VpcEndpointId' --output text)
 
-      #     echo "VPC_ENDPOINT_ID_LOGS=$VPC_ENDPOINT_ID_LOGS" >> $GITHUB_ENV
-      #     echo "VPC_ENDPOINT_ID_SECRETS_MANAGER=$VPC_ENDPOINT_ID_SECRETS_MANAGER" >> $GITHUB_ENV
-      #   continue-on-error: true
+          echo "VPC_ENDPOINT_ID_LOGS=$VPC_ENDPOINT_ID_LOGS" >> $GITHUB_ENV
+          echo "VPC_ENDPOINT_ID_SECRETS_MANAGER=$VPC_ENDPOINT_ID_SECRETS_MANAGER" >> $GITHUB_ENV
+        continue-on-error: true
 
-      # # VPCエンドポイントのステータス確認
-      # - name: Check VPC Endpoint Status
-      #   run: |
-      #     echo "VPCエンドポイントのステータスを確認中..."
-      #     while true; do
-      #       LOGS_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} \
-      #         --query 'VpcEndpoints[0].State' --output text)
-      #       SECRETS_MANAGER_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} \
-      #         --query 'VpcEndpoints[0].State' --output text)
+      # VPCエンドポイントのステータス確認
+      - name: Check VPC Endpoint Status
+        run: |
+          echo "VPCエンドポイントのステータスを確認中..."
+          while true; do
+            LOGS_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} \
+              --query 'VpcEndpoints[0].State' --output text)
+            SECRETS_MANAGER_ENDPOINT_STATUS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} \
+              --query 'VpcEndpoints[0].State' --output text)
 
-      #       echo "Logs Endpoint Status: $LOGS_ENDPOINT_STATUS"
-      #       echo "Secrets Manager Endpoint Status: $SECRETS_MANAGER_ENDPOINT_STATUS"
+            echo "Logs Endpoint Status: $LOGS_ENDPOINT_STATUS"
+            echo "Secrets Manager Endpoint Status: $SECRETS_MANAGER_ENDPOINT_STATUS"
 
-      #       if [ "$LOGS_ENDPOINT_STATUS" = "available" ] && [ "$SECRETS_MANAGER_ENDPOINT_STATUS" = "available" ]; then
-      #         echo "両方のVPCエンドポイントが利用可能になりました。"
-      #         break
-      #       else
-      #         echo "VPCエンドポイントがまだ利用可能ではありません。10秒後に再確認します。"
-      #         sleep 10
-      #       fi
-      #     done
+            if [ "$LOGS_ENDPOINT_STATUS" = "available" ] && [ "$SECRETS_MANAGER_ENDPOINT_STATUS" = "available" ]; then
+              echo "両方のVPCエンドポイントが利用可能になりました。"
+              break
+            else
+              echo "VPCエンドポイントがまだ利用可能ではありません。10秒後に再確認します。"
+              sleep 10
+            fi
+          done
 
-      # # データベースマイグレーションを実行
-      # - name: Run Database Migration
-      #   run: |
-      #     aws lambda invoke --function-name ${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }} --payload '{}' response.json
-      #     cat response.json
-      #   continue-on-error: true
+      # データベースマイグレーションを実行
+      - name: Run Database Migration
+        run: |
+          aws lambda invoke --function-name ${{ secrets.PROJECT }}-db-migration-lambda-${{ inputs.env_var }} --payload '{}' response.json
+          cat response.json
+        continue-on-error: true
 
-      # # VPCエンドポイント削除
-      # - name: Delete VPC Endpoints
-      #   run: |
-      #     echo "### VPCエンドポイントの削除 ###"
-      #     echo "Deleting VPC Endpoint for Logs: ${{ env.VPC_ENDPOINT_ID_LOGS }}"
-      #     aws ec2 delete-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} || true
+      # VPCエンドポイント削除
+      - name: Delete VPC Endpoints
+        run: |
+          echo "### VPCエンドポイントの削除 ###"
+          echo "Deleting VPC Endpoint for Logs: ${{ env.VPC_ENDPOINT_ID_LOGS }}"
+          aws ec2 delete-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} || true
 
-      #     echo "Deleting VPC Endpoint for Secrets Manager: ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }}"
-      #     aws ec2 delete-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} || true
+          echo "Deleting VPC Endpoint for Secrets Manager: ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }}"
+          aws ec2 delete-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} || true
 
-      # # VPCエンドポイントの削除確認
-      # - name: Confirm VPC Endpoints Deletion
-      #   run: |
-      #     echo "VPCエンドポイントの削除状況を確認中..."
-      #     while true; do
-      #       LOGS_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound" || true)
-      #       SECRETS_MANAGER_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound" || true)
+      # VPCエンドポイントの削除確認
+      - name: Confirm VPC Endpoints Deletion
+        run: |
+          echo "VPCエンドポイントの削除状況を確認中..."
+          while true; do
+            LOGS_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_LOGS }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound" || true)
+            SECRETS_MANAGER_ENDPOINT_EXISTS=$(aws ec2 describe-vpc-endpoints --vpc-endpoint-ids ${{ env.VPC_ENDPOINT_ID_SECRETS_MANAGER }} 2>&1 | grep -c "InvalidVpcEndpointId.NotFound" || true)
             
-      #       echo "Logs Endpoint Deleted: $LOGS_ENDPOINT_EXISTS"
-      #       echo "Secrets Manager Endpoint Deleted: $SECRETS_MANAGER_ENDPOINT_EXISTS"
+            echo "Logs Endpoint Deleted: $LOGS_ENDPOINT_EXISTS"
+            echo "Secrets Manager Endpoint Deleted: $SECRETS_MANAGER_ENDPOINT_EXISTS"
             
-      #       if [ "$LOGS_ENDPOINT_EXISTS" -eq 1 ] && [ "$SECRETS_MANAGER_ENDPOINT_EXISTS" -eq 1 ]; then
-      #         echo "両方のVPCエンドポイントが正常に削除されました。"
-      #         break
-      #       else
-      #         echo "VPCエンドポイントの削除がまだ完了していません。10秒後に再確認します。"
-      #         sleep 10
-      #       fi
-      #     done
+            if [ "$LOGS_ENDPOINT_EXISTS" -eq 1 ] && [ "$SECRETS_MANAGER_ENDPOINT_EXISTS" -eq 1 ]; then
+              echo "両方のVPCエンドポイントが正常に削除されました。"
+              break
+            else
+              echo "VPCエンドポイントの削除がまだ完了していません。10秒後に再確認します。"
+              sleep 10
+            fi
+          done
 
-      # # セキュリティグループ削除
-      # - name: Delete Security Group
-      #   run: |
-      #     echo "### セキュリティグループの削除 ###"
-      #     echo "SecurityGroup ID: ${{ env.SECURITY_GROUP_ID }}"
-      #     aws ec2 delete-security-group --group-id ${{ env.SECURITY_GROUP_ID }}
+      # セキュリティグループ削除
+      - name: Delete Security Group
+        run: |
+          echo "### セキュリティグループの削除 ###"
+          echo "SecurityGroup ID: ${{ env.SECURITY_GROUP_ID }}"
+          aws ec2 delete-security-group --group-id ${{ env.SECURITY_GROUP_ID }}
