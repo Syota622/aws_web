@@ -24,7 +24,7 @@ module "database" {
   private_subnet_d_ids = module.network.private_d_subnet_ids
 
   # backend
-  ecs_sg_id = module.backend.ecs_sg_id
+  backend_ecs_sg_id = module.backend.backend_ecs_sg_id
 
   # lambda
   lambda_migrate_sg_id = module.lambda.lambda_migrate_sg_id
@@ -80,8 +80,8 @@ module "domain" {
   env    = var.env
 
   # backend
-  alb_dns     = module.backend.alb_dns
-  alb_zone_id = module.backend.alb_zone_id
+  backend_alb_dns     = module.backend.backend_alb_dns
+  backend_alb_zone_id = module.backend.backend_alb_zone_id
 
   # frontend
   frontend_alb_dns     = module.frontend.frontend_alb_dns
@@ -95,7 +95,7 @@ module "cognito" {
   env    = var.env
 
   # backend
-  alb_dns = module.backend.alb_dns
+  backend_alb_dns = module.backend.backend_alb_dns
 }
 
 ## lambda ###

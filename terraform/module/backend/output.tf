@@ -1,37 +1,37 @@
 # Output: 
 ## ECS
-output "ecs_cluster_name" {
+output "backend_ecs_cluster_name" {
   description = "ECS Cluster Name"
-  value       = aws_ecs_cluster.ecs_cluster.name
+  value       = aws_ecs_cluster.backend_ecs_cluster.name
 }
 
-output "ecs_cluster_arn" {
+output "backend_ecs_cluster_arn" {
   description = "ECS Cluster ARN"
-  value       = aws_ecs_cluster.ecs_cluster.id
+  value       = aws_ecs_cluster.backend_ecs_cluster.id
 }
 
-output "ecs_service_name" {
+output "backend_ecs_service_name" {
   description = "ECS Service Name"
-  value       = aws_ecs_service.ecs_service.name
+  value       = aws_ecs_service.backend_ecs_service.name
 }
 
-output "ecs_service_arn" {
+output "backend_ecs_service_arn" {
   description = "ECS Service ARN"
-  value       = aws_ecs_service.ecs_service.id
+  value       = aws_ecs_service.backend_ecs_service.id
 }
 
-output "ecs_sg_id" {
+output "backend_ecs_sg_id" {
   description = "SecurityGroup id"
-  value       = aws_security_group.ecs_sg.id
+  value       = aws_security_group.backend_ecs_sg.id
 }
 
 ## ALB
-output "alb_dns" {
+output "backend_alb_dns" {
   description = "ALB DNS"
-  value       = aws_lb.ecs_alb.dns_name
+  value       = aws_lb.backend_ecs_alb.dns_name
 }
 
-output "alb_zone_id" {
+output "backend_alb_zone_id" {
   description = "ALB Id"
-  value       = aws_lb.ecs_alb.zone_id
+  value       = aws_lb.backend_ecs_alb.zone_id
 }

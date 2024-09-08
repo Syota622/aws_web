@@ -4,7 +4,7 @@ variable "env" {}
 variable "vpc_id" {}
 variable "private_subnet_c_ids" {}
 variable "private_subnet_d_ids" {}
-variable "ecs_sg_id" {}
+variable "backend_ecs_sg_id" {}
 variable "lambda_migrate_sg_id" {}
 
 ### Aurora Serverless ###

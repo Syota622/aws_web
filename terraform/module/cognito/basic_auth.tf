@@ -78,7 +78,7 @@ resource "aws_cognito_user_pool_client" "basic_access" {
   # コールバック URL（認証後のリダイレクト先）
   callback_urls = [
     local.basic_callback_urls[var.env],
-    "https://${var.alb_dns}/oauth2/idpresponse"
+    "https://${var.backend_alb_dns}/oauth2/idpresponse"
   ]
 
   enable_token_revocation = true # トークンの取り消しを有効化

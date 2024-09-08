@@ -2,8 +2,8 @@
 data "aws_caller_identity" "self" {}
 
 ### ECS Cluster ###
-resource "aws_ecs_cluster" "ecs_cluster" {
-  name = "${var.pj}-ecs-cluster-${var.env}"
+resource "aws_ecs_cluster" "backend_ecs_cluster" {
+  name = "${var.pj}-backend-ecs-cluster-${var.env}"
 
   # setting {
   #   name  = "containerInsights"
@@ -12,14 +12,14 @@ resource "aws_ecs_cluster" "ecs_cluster" {
 }
 
 ### ECS Task Definition ###
-resource "aws_ecs_task_definition" "task_definition" {
-  family                   = "${var.pj}-task-definition-${var.env}"
+resource "aws_ecs_task_definition" "backend_task_definition" {
+  family                   = "${var.pj}-backend-task-definition-${var.env}"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "512"
-  execution_role_arn       = aws_iam_role.ecs_execution_role.arn
-  task_role_arn            = aws_iam_role.ecs_task_role.arn
+  execution_role_arn       = aws_iam_role.backend_ecs_execution_role.arn
+  task_role_arn            = aws_iam_role.backend_ecs_task_role.arn
 
   runtime_platform {
     operating_system_family = "LINUX"
@@ -28,7 +28,7 @@ resource "aws_ecs_task_definition" "task_definition" {
 
   # コンテナ定義
   container_definitions = jsonencode([{
-    name = "${var.pj}-container-${var.env}",
+    name = "${var.pj}-backend-container-${var.env}",
 
     # ECRのイメージを指定: GitHub ActionsでビルドしたイメージのURIを指定
     image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-private-repository-${var.env}:image-uri", 
@@ -40,7 +40,7 @@ resource "aws_ecs_task_definition" "task_definition" {
     logConfiguration = {
       logDriver = "awslogs"
       options = {
-        awslogs-group         = aws_cloudwatch_log_group.ecs_logs.name
+        awslogs-group         = aws_cloudwatch_log_group.backend_ecs_logs.name
         awslogs-region        = "ap-northeast-1"
         awslogs-stream-prefix = "ecs"
       }
@@ -55,7 +55,7 @@ resource "aws_ecs_task_definition" "task_definition" {
       },
       {
         name      = "ENVIRONMENT",
-        valueFrom = aws_secretsmanager_secret.environment.id
+        valueFrom = aws_secretsmanager_secret.backend_environment.id
       },
     ]
   }])
@@ -68,10 +68,10 @@ resource "aws_ecs_task_definition" "task_definition" {
 }
 
 ### ECS Service ###
-resource "aws_ecs_service" "ecs_service" {
-  name            = "${var.pj}-ecs-service-${var.env}"
-  cluster         = aws_ecs_cluster.ecs_cluster.id
-  task_definition = aws_ecs_task_definition.task_definition.arn
+resource "aws_ecs_service" "backend_ecs_service" {
+  name            = "${var.pj}-backend-ecs-service-${var.env}"
+  cluster         = aws_ecs_cluster.backend_ecs_cluster.id
+  task_definition = aws_ecs_task_definition.backend_task_definition.arn
   launch_type     = "FARGATE"
 
   # ECS Exec(Fargate Connection)
@@ -81,7 +81,7 @@ resource "aws_ecs_service" "ecs_service" {
 
   network_configuration {
     subnets          = [var.public_subnet_c_ids, var.public_subnet_d_ids]
-    security_groups  = [aws_security_group.ecs_sg.id]
+    security_groups  = [aws_security_group.backend_ecs_sg.id]
     assign_public_ip = true
   }
 
@@ -91,8 +91,8 @@ resource "aws_ecs_service" "ecs_service" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.ecs_tg.arn
-    container_name   = "${var.pj}-container-${var.env}"
+    target_group_arn = aws_lb_target_group.backend_ecs_tg.arn
+    container_name   = "${var.pj}-backend-container-${var.env}"
     container_port   = 8080
   }
 
@@ -104,8 +104,8 @@ resource "aws_ecs_service" "ecs_service" {
   }
 }
 
-resource "aws_security_group" "ecs_sg" {
-  name        = "${var.pj}-ecs-service-sg-${var.env}"
+resource "aws_security_group" "backend_ecs_sg" {
+  name        = "${var.pj}-backend-ecs-service-sg-${var.env}"
   description = "ECS Service Security Group"
   vpc_id      = var.vpc_id
 
@@ -113,7 +113,7 @@ resource "aws_security_group" "ecs_sg" {
     from_port       = 8080
     to_port         = 8080
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
+    security_groups = [aws_security_group.backend_alb_sg.id]
     cidr_blocks     = ["0.0.0.0/0"]
   }
 
@@ -125,11 +125,11 @@ resource "aws_security_group" "ecs_sg" {
   }
 
   tags = {
-    Name = "${var.pj}-ecs-service-sg-${var.env}"
+    Name = "${var.pj}-backend-ecs-service-sg-${var.env}"
   }
 }
 
-resource "aws_cloudwatch_log_group" "ecs_logs" {
-  name              = "/ecs/${var.pj}-${var.env}"
+resource "aws_cloudwatch_log_group" "backend_ecs_logs" {
+  name              = "/ecs/${var.pj}-backend-${var.env}"
   retention_in_days = 30
 }

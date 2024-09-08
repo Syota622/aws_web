@@ -1,6 +1,6 @@
 ### Elastic Container Registry
-resource "aws_ecr_repository" "private_repository" {
-  name                 = "${var.pj}-private-repository-${var.env}"
+resource "aws_ecr_repository" "backend_private_repository" {
+  name                 = "${var.pj}-backend-private-repository-${var.env}"
   image_tag_mutability = "MUTABLE"
   encryption_configuration {
     encryption_type = "AES256"
@@ -11,12 +11,12 @@ resource "aws_ecr_repository" "private_repository" {
   }
 
   tags = {
-    Name = "${var.pj}-private-repository-${var.env}"
+    Name = "${var.pj}-backend-private-repository-${var.env}"
   }
 }
 
-resource "aws_ecr_lifecycle_policy" "private_repository_policy" {
-  repository = aws_ecr_repository.private_repository.name
+resource "aws_ecr_lifecycle_policy" "backend_private_repository_policy" {
+  repository = aws_ecr_repository.backend_private_repository.name
   policy     = <<POLICY
     {
       "rules": [

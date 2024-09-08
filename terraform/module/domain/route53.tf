@@ -12,8 +12,8 @@ resource "aws_route53_record" "prod_record" {
   type    = "A"
 
   alias {
-    name                   = var.alb_dns
-    zone_id                = var.alb_zone_id
+    name                   = var.backend_alb_dns
+    zone_id                = var.backend_alb_zone_id
     evaluate_target_health = true
   }
 }
