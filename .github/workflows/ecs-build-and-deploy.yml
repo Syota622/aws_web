@@ -84,8 +84,8 @@ jobs:
       # タスク定義を更新(github.shaのイメージを使用)
       - name: Update ECS task definition
         run: |
-          TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "${{ secrets.PROJECT }}-task-definition-${{ inputs.env_var }}" --query taskDefinition)
-          NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-private-repository-${{ inputs.env_var }}:${{ github.sha }}" '
+          TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "${{ secrets.PROJECT }}-backend-task-definition-${{ inputs.env_var }}" --query taskDefinition)
+          NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-backend-private-repository-${{ inputs.env_var }}:${{ github.sha }}" '
             del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy) |
             .containerDefinitions[0].image = $IMAGE
           ')
