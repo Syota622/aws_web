@@ -95,6 +95,12 @@ resource "aws_ecs_service" "ecs_service" {
     container_name   = "${var.pj}-container-${var.env}"
     container_port   = 8080
   }
+
+  lifecycle {
+    ignore_changes = [
+      task_definition
+    ]
+  }
 }
 
 resource "aws_security_group" "ecs_sg" {
