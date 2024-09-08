@@ -1,39 +1,77 @@
 #!/bin/bash
 
 # 設定
+## バックエンド
 ALB_NAME="learn-ecs-alb-prod"
 ECS_CLUSTER_NAME="learn-ecs-cluster-prod"
 ECS_SERVICE_NAME="learn-ecs-service-prod"
+## フロントエンド
+FRONTEND_ALB_NAME="learn-frontend-ecs-alb-prod"
+FRONTEND_ECS_CLUSTER_NAME="learn-frontend-ecs-cluster-prod"
+FRONTEND_ECS_SERVICE_NAME="learn-frontend-ecs-service-prod"
+## Aurora
 AURORA_CLUSTER_ID="learn-serverless-prod"
+## 共通
 MAX_ATTEMPTS=30
 SLEEP_TIME=30
 
-# ALB の ARN を取得
-echo "ALB の ARN を取得中..."
-ALB_ARN=$(aws elbv2 describe-load-balancers --names $ALB_NAME --query 'LoadBalancers[0].LoadBalancerArn' --output text)
+# バックエンド ALB の ARN を取得
+echo "バックエンド ALB の ARN を取得中..."
+BACKEND_ALB_ARN=$(aws elbv2 describe-load-balancers --names $ALB_NAME --query 'LoadBalancers[0].LoadBalancerArn' --output text)
 
-# ALB削除
-echo "ALBを削除中..."
+# バックエンド ALB削除
+echo "バックエンド ALBを削除中..."
 aws elbv2 delete-load-balancer --load-balancer-arn $ALB_ARN
 
-# ECSのタスク数を0に設定
-echo "ECSのタスク数を0に設定中..."
+# フロントエンド ALB の ARN を取得
+echo "フロントエンド ALB の ARN を取得中..."
+FRONTEND_ALB_ARN=$(aws elbv2 describe-load-balancers --names $FRONTEND_ALB_NAME --query 'LoadBalancers[0].LoadBalancerArn' --output text)
+
+# フロントエンド ALB削除
+echo "フロントエンド ALBを削除中..."
+aws elbv2 delete-load-balancer --load-balancer-arn $FRONTEND_ALB_ARN
+
+# バックエンド ECSのタスク数を0に設定
+echo "バックエンド ECSのタスク数を0に設定中..."
 aws ecs update-service \
     --cluster $ECS_CLUSTER_NAME \
     --service $ECS_SERVICE_NAME \
     --desired-count 0 \
     > /dev/null 2>&1
 
-# ECSサービスの状態を確認
-echo "ECSサービスの状態を確認中..."
+# フロントエンド ECSのタスク数を0に設定
+echo "フロントエンド ECSのタスク数を0に設定中..."
+aws ecs update-service \
+    --cluster $FRONTEND_ECS_CLUSTER_NAME \
+    --service $FRONTEND_ECS_SERVICE_NAME \
+    --desired-count 0 \
+    > /dev/null 2>&1
+
+# バックエンド ECSサービスの状態を確認
+echo "バックエンド ECSサービスの状態を確認中..."
 for (( i=1; i<=$MAX_ATTEMPTS; i++ )); do
     RUNNING_COUNT=$(aws ecs describe-services --cluster $ECS_CLUSTER_NAME --services $ECS_SERVICE_NAME --query 'services[0].runningCount' --output text)
     echo "試行 $i: 実行中のタスク数 - $RUNNING_COUNT"
     if [ "$RUNNING_COUNT" = "0" ]; then
-        echo "ECSサービスのタスクがすべて停止しました。"
+        echo "バックエンド ECSサービスのタスクがすべて停止しました。"
         break
     elif [ $i -eq $MAX_ATTEMPTS ]; then
-        echo "ECSサービスの更新がタイムアウトしました。"
+        echo "バックエンド ECSサービスの更新がタイムアウトしました。"
+        exit 1
+    fi
+    sleep $SLEEP_TIME
+done
+
+# フロントエンド ECSサービスの状態を確認
+echo "フロントエンド ECSサービスの状態を確認中..."
+for (( i=1; i<=$MAX_ATTEMPTS; i++ )); do
+    RUNNING_COUNT=$(aws ecs describe-services --cluster $FRONTEND_ECS_CLUSTER_NAME --services $FRONTEND_ECS_SERVICE_NAME --query 'services[0].runningCount' --output text)
+    echo "試行 $i: 実行中のタスク数 - $RUNNING_COUNT"
+    if [ "$RUNNING_COUNT" = "0" ]; then
+        echo "フロントエンド ECSサービスのタスクがすべて停止しました。"
+        break
+    elif [ $i -eq $MAX_ATTEMPTS ]; then
+        echo "フロントエンド ECSサービスの更新がタイムアウトしました。"
         exit 1
     fi
     sleep $SLEEP_TIME
