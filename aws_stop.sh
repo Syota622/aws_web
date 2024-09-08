@@ -2,7 +2,7 @@
 
 # 設定
 ## バックエンド
-BACKEND_ALB_NAME="learn-ecs-alb-prod"
+BACKEND_ALB_NAME="learn-backend-ecs-alb-prod"
 BACKEND_ECS_CLUSTER_NAME="learn-backend-ecs-cluster-prod"
 BACKEND_ECS_SERVICE_NAME="learn-backend-ecs-service-prod"
 ## フロントエンド
