@@ -53,12 +53,25 @@ module "backend" {
   basic_user_pool_domain         = module.cognito.basic_user_pool_domain
 }
 
-# ## frontend ###
-# module "frontend" {
-#   source = "../../module/frontend"
-#   pj     = var.pj
-#   env    = var.env
-# }
+## frontend ###
+module "frontend" {
+  source = "../../module/frontend"
+  pj     = var.pj
+  env    = var.env
+
+  # network
+  vpc_id              = module.network.vpc_id
+  public_subnet_c_ids = module.network.public_c_subnet_ids
+  public_subnet_d_ids = module.network.public_d_subnet_ids
+
+  # domain
+  acm_certificate = module.domain.acm_certificate
+
+  # cognito
+  basic_user_pool_arn            = module.cognito.basic_user_pool_arn
+  basic_user_pool_client_back_id = module.cognito.basic_user_pool_client_back_id
+  basic_user_pool_domain         = module.cognito.basic_user_pool_domain
+}
 
 ## domain ###
 module "domain" {
