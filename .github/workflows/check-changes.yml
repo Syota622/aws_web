@@ -33,5 +33,5 @@ jobs:
             - 'db/migrations/**'
             - 'lambda/migrate/**'
           backend_changed:
-            - '.github/workflows/**'
+            # - '.github/workflows/**'
             - 'backend/**'
