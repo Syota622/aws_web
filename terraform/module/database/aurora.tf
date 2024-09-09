@@ -56,7 +56,7 @@ resource "aws_security_group" "aurora_cluster" {
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
-    security_groups = [var.ecs_sg_id, var.lambda_migrate_sg_id]
+    security_groups = [var.backend_ecs_sg_id, var.lambda_migrate_sg_id]
   }
 
   egress {

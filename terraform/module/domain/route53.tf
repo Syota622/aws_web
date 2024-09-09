@@ -12,8 +12,20 @@ resource "aws_route53_record" "prod_record" {
   type    = "A"
 
   alias {
-    name                   = var.alb_dns
-    zone_id                = var.alb_zone_id
+    name                   = var.backend_alb_dns
+    zone_id                = var.backend_alb_zone_id
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "frontend_prod_record" {
+  zone_id = aws_route53_zone.learn_com.zone_id
+  name    = "mokokero.com"
+  type    = "A"
+
+  alias {
+    name                   = var.frontend_alb_dns
+    zone_id                = var.frontend_alb_zone_id
     evaluate_target_health = true
   }
 }
