@@ -85,7 +85,7 @@ jobs:
       - name: Update ECS task definition
         run: |
           # タスク定義ファイルを読み込む
-          TASK_DEFINITION=$(cat ecs_task_definition/backend_task_definition.json)
+          TASK_DEFINITION=$(cat ${{ github.workspace }}/.github/workflows/ecs_task_definition/backend_task_definition.json)
           # 変数を置換
           TASK_DEFINITION=$(echo "$TASK_DEFINITION" | sed -e "s/AWS_ACCOUNT_ID/${{ secrets.AWS_ACCOUNT_ID }}/g" -e "s/PROJECT/${{ secrets.PROJECT }}/g" -e "s/ENVIRONMENT/${{ inputs.env_var }}/g")
           # イメージを更新
