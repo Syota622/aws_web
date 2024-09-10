@@ -96,11 +96,11 @@ jobs:
           NEW_TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION" --query 'taskDefinition.taskDefinitionArn' --output text)
           echo "NEW_TASK_DEFINITION_ARN=$NEW_TASK_DEFINITION_ARN" >> "$GITHUB_ENV"
 
-      # ECSにデプロイ
-      - name: Deploy to ECS
-        run: |
-          export ECS_CLUSTER="${{ secrets.PROJECT }}-backend-ecs-cluster-${{ inputs.env_var }}"
-          export ECS_SERVICE="${{ secrets.PROJECT }}-backend-ecs-service-${{ inputs.env_var }}"
-          echo "ECS_CLUSTER: $ECS_CLUSTER"
-          echo "ECS_SERVICE: $ECS_SERVICE"
-          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $NEW_TASK_DEFINITION_ARN --force-new-deployment
+      # # ECSにデプロイ
+      # - name: Deploy to ECS
+      #   run: |
+      #     export ECS_CLUSTER="${{ secrets.PROJECT }}-backend-ecs-cluster-${{ inputs.env_var }}"
+      #     export ECS_SERVICE="${{ secrets.PROJECT }}-backend-ecs-service-${{ inputs.env_var }}"
+      #     echo "ECS_CLUSTER: $ECS_CLUSTER"
+      #     echo "ECS_SERVICE: $ECS_SERVICE"
+      #     aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $NEW_TASK_DEFINITION_ARN --force-new-deployment
