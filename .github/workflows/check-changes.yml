@@ -29,9 +29,9 @@ jobs:
       with:
         filters: |
           lambda_changed:
-            # - '.github/workflows/**'
+            - '.github/workflows/deploy-lambda-and-migrate.yml'
             - 'db/migrations/**'
             - 'lambda/migrate/**'
           backend_changed:
-            # - '.github/workflows/**'
+            - '.github/workflows/backend-ecs-build-and-deploy.yml'
             - 'backend/**'
