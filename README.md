@@ -37,5 +37,8 @@ Hub: ハブとは、中心地や中心部を意味する。ユーザーが、必
 わかりやすいロードマップ形式で、信頼性の高い情報を提供します。  
 「RoadmapHub」で、情報収集をもっと簡単に、迅速に。
 
-# 画面遷移図
+# ワイヤーフレーム（Figma）
 https://www.figma.com/design/gatM8ZlGsOcfVa1bYibKAs/RoadmapHub?node-id=13-42&t=D14kIP9EApyI8RYc-1
+
+# AWS全体構成図
+![AWS全体構成図](./AWS全体構成図.png)
