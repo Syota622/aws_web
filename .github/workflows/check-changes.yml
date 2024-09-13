@@ -9,6 +9,9 @@ on:
       backend_changed:
         description: "Flag indicating if backend-related files changed"
         value: ${{ jobs.check-changes.outputs.backend_changed }}
+      frontend_changed:
+        description: "Flag indicating if frontend-related files changed"
+        value: ${{ jobs.check-changes.outputs.frontend_changed }}
 
 jobs:
   check-changes:
@@ -17,6 +20,7 @@ jobs:
     outputs:
       lambda_changed: ${{ steps.filter.outputs.lambda_changed }}
       backend_changed: ${{ steps.filter.outputs.backend_changed }}
+      frontend_changed: ${{ steps.filter.outputs.frontend_changed }}
     # リポジトリのコードをチェックアウト
     steps:
     - name: Checkout Code
