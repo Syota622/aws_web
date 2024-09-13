@@ -1,7 +1,7 @@
 ### リスナールール ###
 
 # フロントエンド Blue/Green リスナールール
-resource "aws_lb_listener_rule" "blue_green" {
+resource "aws_lb_listener_rule" "frontend_ecs_blue_tg" {
   listener_arn = aws_lb_listener.https_listener.arn
   priority     = 100
 
