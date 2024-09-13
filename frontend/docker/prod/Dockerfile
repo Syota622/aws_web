@@ -1,18 +1,19 @@
 # ビルド用ステージ
 FROM node:18-alpine AS builder
 
-# ビルド用ステージ
 WORKDIR /app
 
 # 必要な依存関係をインストール
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat python3 make g++
 
-# npmのキャッシュディレクトリを設定
-ENV npm_config_cache /tmp/npm-cache
+# npmの設定
+ENV NODE_ENV=production
+ENV npm_config_cache=/tmp/npm-cache
+ENV npm_config_loglevel=verbose
 
 # パッケージファイルのみをコピーして依存関係をインストール
 COPY package*.json ./
-RUN npm ci --no-cache
+RUN npm ci --no-cache --verbose
 
 # 残りのファイルをコピーしてビルド
 COPY . .
@@ -21,7 +22,6 @@ RUN npm run build
 # 本番用ステージ
 FROM node:18-alpine AS runner
 
-# 本番用ステージ
 WORKDIR /app
 
 # 必要な依存関係をインストール
