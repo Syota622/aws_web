@@ -38,6 +38,6 @@ jobs:
             - '.github/workflows/backend-ecs-build-and-deploy.yml'
             - 'backend/**'
           frontend_changed:
-            # - '.github/workflows/**'
+            - '.github/workflows/**'
             - '.github/workflows/frontend-ecs-build-and-deploy.yml'
             - 'frontend/**'
