@@ -91,7 +91,7 @@ resource "aws_ecs_service" "backend_ecs_service" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.backend_ecs_tg.arn
+    target_group_arn = var.backend_ecs_tg
     container_name   = "${var.pj}-backend-container-${var.env}"
     container_port   = 8080
   }
@@ -113,7 +113,7 @@ resource "aws_security_group" "backend_ecs_sg" {
     from_port       = 8080
     to_port         = 8080
     protocol        = "tcp"
-    security_groups = [aws_security_group.backend_alb_sg.id]
+    security_groups = [var.alb_sg_id]
     cidr_blocks     = ["0.0.0.0/0"]
   }
 

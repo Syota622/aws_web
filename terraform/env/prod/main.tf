@@ -30,9 +30,9 @@ module "database" {
   lambda_migrate_sg_id = module.lambda.lambda_migrate_sg_id
 }
 
-## backend ###
-module "backend" {
-  source = "../../module/backend"
+## alb ###
+module "alb" {
+  source = "../../module/alb"
   pj     = var.pj
   env    = var.env
 
@@ -53,9 +53,9 @@ module "backend" {
   basic_user_pool_domain         = module.cognito.basic_user_pool_domain
 }
 
-## frontend ###
-module "frontend" {
-  source = "../../module/frontend"
+## backend ###
+module "backend" {
+  source = "../../module/backend"
   pj     = var.pj
   env    = var.env
 
@@ -64,14 +64,43 @@ module "frontend" {
   public_subnet_c_ids = module.network.public_c_subnet_ids
   public_subnet_d_ids = module.network.public_d_subnet_ids
 
-  # domain
-  acm_certificate = module.domain.acm_certificate
+  # # domain
+  # acm_certificate = module.domain.acm_certificate
 
-  # cognito
-  basic_user_pool_arn            = module.cognito.basic_user_pool_arn
-  basic_user_pool_client_back_id = module.cognito.basic_user_pool_client_back_id
-  basic_user_pool_domain         = module.cognito.basic_user_pool_domain
+  # database
+  secrets_manager_arn = module.database.secrets_manager_arn
+
+  # security group
+  alb_sg_id = module.alb.alb_sg_id
+
+  # target group
+  backend_ecs_tg = module.alb.backend_ecs_tg
+
+  # # cognito
+  # basic_user_pool_arn            = module.cognito.basic_user_pool_arn
+  # basic_user_pool_client_back_id = module.cognito.basic_user_pool_client_back_id
+  # basic_user_pool_domain         = module.cognito.basic_user_pool_domain
 }
+
+# ## frontend ###
+# module "frontend" {
+#   source = "../../module/frontend"
+#   pj     = var.pj
+#   env    = var.env
+
+#   # network
+#   vpc_id              = module.network.vpc_id
+#   public_subnet_c_ids = module.network.public_c_subnet_ids
+#   public_subnet_d_ids = module.network.public_d_subnet_ids
+
+#   # domain
+#   acm_certificate = module.domain.acm_certificate
+
+#   # cognito
+#   basic_user_pool_arn            = module.cognito.basic_user_pool_arn
+#   basic_user_pool_client_back_id = module.cognito.basic_user_pool_client_back_id
+#   basic_user_pool_domain         = module.cognito.basic_user_pool_domain
+# }
 
 ## domain ###
 module "domain" {
@@ -79,13 +108,13 @@ module "domain" {
   pj     = var.pj
   env    = var.env
 
-  # backend
-  backend_alb_dns     = module.backend.backend_alb_dns
-  backend_alb_zone_id = module.backend.backend_alb_zone_id
+  # alb
+  alb_dns     = module.alb.alb_dns
+  alb_zone_id = module.alb.alb_zone_id
 
   # frontend
-  frontend_alb_dns     = module.frontend.frontend_alb_dns
-  frontend_alb_zone_id = module.frontend.frontend_alb_zone_id
+  # frontend_alb_dns     = module.frontend.frontend_alb_dns
+  # frontend_alb_zone_id = module.frontend.frontend_alb_zone_id
 }
 
 ## cognito ###
@@ -94,8 +123,8 @@ module "cognito" {
   pj     = var.pj
   env    = var.env
 
-  # backend
-  backend_alb_dns = module.backend.backend_alb_dns
+  # alb
+  alb_dns = module.alb.alb_dns
 }
 
 ## lambda ###

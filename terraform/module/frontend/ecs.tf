@@ -72,7 +72,7 @@ resource "aws_ecs_service" "frontend_ecs_service" {
   # ECS Exec(Fargate Connection)
   enable_execute_command = true
 
-  desired_count = 0
+  desired_count = 1 # Blue/Greenデプロイのため、少なくとも1つのタスクが必要
 
   network_configuration {
     subnets          = [var.public_subnet_c_ids, var.public_subnet_d_ids]
@@ -80,20 +80,21 @@ resource "aws_ecs_service" "frontend_ecs_service" {
     assign_public_ip = true
   }
 
-  deployment_circuit_breaker {
-    enable   = true
-    rollback = true
+  deployment_controller {
+    type = "CODE_DEPLOY"
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.frontend_ecs_tg.arn
+    target_group_arn = aws_lb_target_group.frontend_ecs_blue_tg.arn # Blue環境用のターゲットグループ
     container_name   = "${var.pj}-frontend-container-${var.env}"
     container_port   = 3000
   }
 
   lifecycle {
     ignore_changes = [
-      desired_count
+      task_definition,
+      desired_count,
+      load_balancer
     ]
   }
 }

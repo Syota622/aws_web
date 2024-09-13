@@ -24,14 +24,3 @@ output "frontend_ecs_sg_id" {
   description = "SecurityGroup id"
   value       = aws_security_group.frontend_ecs_sg.id
 }
-
-## ALB
-output "frontend_alb_dns" {
-  description = "ALB DNS"
-  value       = aws_lb.frontend_ecs_alb.dns_name
-}
-
-output "frontend_alb_zone_id" {
-  description = "ALB Id"
-  value       = aws_lb.frontend_ecs_alb.zone_id
-}
