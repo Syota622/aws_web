@@ -1,6 +1,7 @@
 # ビルド用ステージ
 FROM node:18-alpine AS builder
 
+# ビルド用ステージ
 WORKDIR /app
 
 # 必要な依存関係をインストール
@@ -20,6 +21,7 @@ RUN npm run build
 # 本番用ステージ
 FROM node:18-alpine AS runner
 
+# 本番用ステージ
 WORKDIR /app
 
 # 必要な依存関係をインストール

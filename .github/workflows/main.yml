@@ -13,6 +13,7 @@ on:
       - 'backend/**'
       - 'db/migrations/**'
       - 'lambda/migrate/**'
+      - 'frontend/**'
 
 # GitHub Actionsで利用するIAMロールの権限設定
 permissions:
