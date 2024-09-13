@@ -55,7 +55,7 @@ jobs:
             --cache-from type=local,src=/tmp/.buildx-cache-frontend-ecs \
             --cache-to type=local,dest=/tmp/.buildx-cache-frontend-ecs-new,mode=max \
             --load \
-            .
+            frontend
 
       - name: Move cache
         run: |

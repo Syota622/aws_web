@@ -1,31 +1,26 @@
-# ビルドステージ
-FROM node:18-alpine AS builder
+# ビルド用ステージ
+FROM node:18-alpine as builder
 
 WORKDIR /app
 
-# 必要な依存関係をインストール
-RUN apk add --no-cache libc6-compat
-
-# パッケージファイルをコピーして依存関係をインストール
+# パッケージファイルのみをコピーして依存関係をインストール
 COPY package*.json ./
-RUN npm install
+RUN npm ci --no-cache
 
-# ソースコードをコピーしてビルド
+# 残りのファイルをコピーしてビルド
 COPY . .
 RUN npm run build
 
-# 実行ステージ
-FROM node:18-alpine AS runner
+# 本番用ステージ
+FROM node:18-alpine
 
 WORKDIR /app
 
-# 必要な依存関係をインストール
-RUN apk add --no-cache libc6-compat
-
-# ビルド成果物をコピー
+# ビルド成果物のみをコピー
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/package*.json ./
 
-# アプリケーションを起動
+EXPOSE 3000
+
 CMD ["npm", "start"]
