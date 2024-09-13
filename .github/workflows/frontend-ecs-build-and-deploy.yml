@@ -1,0 +1,90 @@
+name: Frontend ECS Build and Deploy
+
+on:
+  workflow_call:
+    inputs:
+      env_var:
+        required: true
+        type: string
+
+env:
+  AWS_REGION: ap-northeast-1
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-22.04
+    environment: 
+      name: ${{ inputs.env_var }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.PROJECT }}-github-actions-role
+          role-session-name: ${{ secrets.PROJECT }}-github-actions
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up QEMU for arm64
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache-frontend-ecs
+          key: ${{ runner.os }}-buildx-frontend-ecs-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-frontend-ecs-
+
+      - name: Build Frontend Image
+        run: |
+          docker buildx create --use
+          docker buildx build \
+            --platform linux/arm64 \
+            -t ${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }} \
+            -f frontend/docker/${{ inputs.env_var }}/Dockerfile \
+            --cache-from type=local,src=/tmp/.buildx-cache-frontend-ecs \
+            --cache-to type=local,dest=/tmp/.buildx-cache-frontend-ecs-new,mode=max \
+            --load \
+            .
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache-frontend-ecs
+          mv /tmp/.buildx-cache-frontend-ecs-new /tmp/.buildx-cache-frontend-ecs
+
+      - name: Tag Frontend Image
+        run: |
+          docker tag ${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }} \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }}
+
+      - name: Push Frontend Image to ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }}
+
+      - name: Update ECS task definition
+        run: |
+          TASK_DEFINITION=$(cat ${{ github.workspace }}/.github/workflows/ecs_task_definition/frontend_task_definition.json)
+          TASK_DEFINITION=$(echo "$TASK_DEFINITION" | sed -e "s/AWS_ACCOUNT_ID/${{ secrets.AWS_ACCOUNT_ID }}/g" -e "s/PROJECT/${{ secrets.PROJECT }}/g" -e "s/ENVIRONMENT/${{ inputs.env_var }}/g")
+          NEW_TASK_DEFINITION=$(echo "$TASK_DEFINITION" | jq --arg IMAGE "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }}" '
+            .containerDefinitions[0].image = $IMAGE
+          ')
+          NEW_TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION" --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "NEW_TASK_DEFINITION_ARN=$NEW_TASK_DEFINITION_ARN" >> "$GITHUB_ENV"
+
+      - name: Deploy to ECS
+        run: |
+          export ECS_CLUSTER="${{ secrets.PROJECT }}-frontend-ecs-cluster-${{ inputs.env_var }}"
+          export ECS_SERVICE="${{ secrets.PROJECT }}-frontend-ecs-service-${{ inputs.env_var }}"
+          echo "ECS_CLUSTER: $ECS_CLUSTER"
+          echo "ECS_SERVICE: $ECS_SERVICE"
+          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $NEW_TASK_DEFINITION_ARN --force-new-deployment

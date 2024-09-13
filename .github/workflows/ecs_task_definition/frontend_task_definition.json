@@ -1,0 +1,48 @@
+{
+  "taskDefinitionArn": "arn:aws:ecs:ap-northeast-1:235484765172:task-definition/PROJECT-frontend-task-definition-ENVIRONMENT:8",
+  "containerDefinitions": [
+      {
+          "name": "PROJECT-frontend-container-ENVIRONMENT",
+          "image": "235484765172.dkr.ecr.ap-northeast-1.amazonaws.com/PROJECT-frontend-private-repository-ENVIRONMENT:imageuri",
+          "cpu": 0,
+          "portMappings": [
+              {
+                  "containerPort": 3000,
+                  "hostPort": 3000,
+                  "protocol": "tcp"
+              }
+          ],
+          "essential": true,
+          "environment": [],
+          "mountPoints": [],
+          "volumesFrom": [],
+          "logConfiguration": {
+              "logDriver": "awslogs",
+              "options": {
+                  "awslogs-group": "/ecs/PROJECT-frontend-ENVIRONMENT",
+                  "awslogs-region": "ap-northeast-1",
+                  "awslogs-stream-prefix": "ecs"
+              }
+          },
+          "systemControls": []
+      }
+  ],
+  "compatibilities": [
+      "FARGATE"
+  ],
+  "family": "PROJECT-frontend-task-definition-ENVIRONMENT",
+  "taskRoleArn": "arn:aws:iam::235484765172:role/PROJECT_frontend_ecs_task_role_ENVIRONMENT",
+  "executionRoleArn": "arn:aws:iam::235484765172:role/PROJECT_frontend_ecs_execution_role_ENVIRONMENT",
+  "networkMode": "awsvpc",
+  "volumes": [],
+  "placementConstraints": [],
+  "runtimePlatform": {
+      "cpuArchitecture": "ARM64",
+      "operatingSystemFamily": "LINUX"
+  },
+  "requiresCompatibilities": [
+      "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512"
+}
