@@ -6,9 +6,21 @@ resource "aws_route53_zone" "learn_com" {
   name = "mokokero.com"
 }
 
-resource "aws_route53_record" "prod_record" {
+resource "aws_route53_record" "backend_prod_record" {
   zone_id = aws_route53_zone.learn_com.zone_id
   name    = "api.mokokero.com"
+  type    = "A"
+
+  alias {
+    name                   = var.alb_dns
+    zone_id                = var.alb_zone_id
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "frontend_prod_record" {
+  zone_id = aws_route53_zone.learn_com.zone_id
+  name    = "mokokero.com"
   type    = "A"
 
   alias {

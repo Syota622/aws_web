@@ -11,11 +11,13 @@ resource "aws_codedeploy_deployment_group" "frontend" {
   service_role_arn       = aws_iam_role.codedeploy_service_role.arn
   deployment_config_name = "CodeDeployDefault.ECSAllAtOnce"
 
+  # デプロイ対象のECSクラスターとサービス
   ecs_service {
     cluster_name = aws_ecs_cluster.frontend_ecs_cluster.name
     service_name = aws_ecs_service.frontend_ecs_service.name
   }
 
+  # ブルー/グリーンデプロイの設定
   blue_green_deployment_config {
     deployment_ready_option {
       action_on_timeout = "CONTINUE_DEPLOYMENT"
@@ -27,11 +29,13 @@ resource "aws_codedeploy_deployment_group" "frontend" {
     }
   }
 
+  # デプロイスタイルの設定
   deployment_style {
     deployment_option = "WITH_TRAFFIC_CONTROL"
     deployment_type   = "BLUE_GREEN"
   }
 
+  # ロードバランサーの設定
   load_balancer_info {
     target_group_pair_info {
       prod_traffic_route {
@@ -43,11 +47,11 @@ resource "aws_codedeploy_deployment_group" "frontend" {
       }
 
       target_group {
-        name = var.frontend_ecs_blue_tg
+        name = var.frontend_ecs_blue_tg_name
       }
 
       target_group {
-        name = var.frontend_ecs_green_tg
+        name = var.frontend_ecs_green_tg_name
       }
     }
   }
@@ -96,7 +100,8 @@ resource "aws_iam_policy" "codedeploy_ecs_policy" {
           "cloudwatch:DescribeAlarms",
           "sns:Publish",
           "s3:GetObject",
-          "s3:GetObjectVersion"
+          "s3:GetObjectVersion",
+          "iam:PassRole"
         ]
         Resource = "*"
       }

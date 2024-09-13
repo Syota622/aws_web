@@ -97,6 +97,8 @@ module "frontend" {
   # target group
   frontend_ecs_blue_tg = module.alb.frontend_ecs_blue_tg
   frontend_ecs_green_tg = module.alb.frontend_ecs_green_tg
+  frontend_ecs_blue_tg_name = module.alb.frontend_ecs_blue_tg_name
+  frontend_ecs_green_tg_name = module.alb.frontend_ecs_green_tg_name
 
   # listener
   https_listener = module.alb.https_listener
