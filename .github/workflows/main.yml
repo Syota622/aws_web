@@ -72,6 +72,7 @@ jobs:
           echo "check-changes result: ${{ needs.check-changes.result }}"
           echo "lambda_changed: ${{ needs.check-changes.outputs.lambda_changed }}"
           echo "backend_changed: ${{ needs.check-changes.outputs.backend_changed }}"
+          echo "frontend_changed: ${{ needs.check-changes.outputs.frontend_changed }}"
           echo "deploy-lambda-and-migrate result: ${{ needs.deploy-lambda-and-migrate.result }}"
           echo "backend-ecs-build-and-deploy result: ${{ needs.backend-ecs-build-and-deploy.result }}"
           echo "frontend-ecs-build-and-deploy result: ${{ needs.frontend-ecs-build-and-deploy.result }}"
