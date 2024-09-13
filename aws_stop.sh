@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # 設定
+## ALB
+ALB_NAME="learn-ecs-alb-prod"
 ## バックエンド
-BACKEND_ALB_NAME="learn-backend-ecs-alb-prod"
 BACKEND_ECS_CLUSTER_NAME="learn-backend-ecs-cluster-prod"
 BACKEND_ECS_SERVICE_NAME="learn-backend-ecs-service-prod"
 ## フロントエンド
-FRONTEND_ALB_NAME="learn-frontend-ecs-alb-prod"
 FRONTEND_ECS_CLUSTER_NAME="learn-frontend-ecs-cluster-prod"
 FRONTEND_ECS_SERVICE_NAME="learn-frontend-ecs-service-prod"
 ## Aurora
@@ -15,21 +15,13 @@ AURORA_CLUSTER_ID="learn-serverless-prod"
 MAX_ATTEMPTS=30
 SLEEP_TIME=30
 
-# バックエンド ALB の ARN を取得
-echo "バックエンド ALB の ARN を取得中..."
-BACKEND_ALB_ARN=$(aws elbv2 describe-load-balancers --names $BACKEND_ALB_NAME --query 'LoadBalancers[0].LoadBalancerArn' --output text)
+# ALB の ARN を取得
+echo "ALB の ARN を取得中..."
+BACKEND_ALB_ARN=$(aws elbv2 describe-load-balancers --names $ALB_NAME --query 'LoadBalancers[0].LoadBalancerArn' --output text)
 
-# バックエンド ALB削除
-echo "バックエンド ALBを削除中..."
+# ALB削除
+echo "ALBを削除中..."
 aws elbv2 delete-load-balancer --load-balancer-arn $BACKEND_ALB_ARN
-
-# フロントエンド ALB の ARN を取得
-echo "フロントエンド ALB の ARN を取得中..."
-FRONTEND_ALB_ARN=$(aws elbv2 describe-load-balancers --names $FRONTEND_ALB_NAME --query 'LoadBalancers[0].LoadBalancerArn' --output text)
-
-# フロントエンド ALB削除
-echo "フロントエンド ALBを削除中..."
-aws elbv2 delete-load-balancer --load-balancer-arn $FRONTEND_ALB_ARN
 
 # バックエンド ECSのタスク数を0に設定
 echo "バックエンド ECSのタスク数を0に設定中..."
