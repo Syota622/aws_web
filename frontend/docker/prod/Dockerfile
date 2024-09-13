@@ -1,7 +1,13 @@
 # ビルド用ステージ
-FROM node:18-alpine as builder
+FROM node:18-alpine AS builder
 
 WORKDIR /app
+
+# 必要な依存関係をインストール
+RUN apk add --no-cache libc6-compat
+
+# npmのキャッシュディレクトリを設定
+ENV npm_config_cache /tmp/npm-cache
 
 # パッケージファイルのみをコピーして依存関係をインストール
 COPY package*.json ./
@@ -12,9 +18,12 @@ COPY . .
 RUN npm run build
 
 # 本番用ステージ
-FROM node:18-alpine
+FROM node:18-alpine AS runner
 
 WORKDIR /app
+
+# 必要な依存関係をインストール
+RUN apk add --no-cache libc6-compat
 
 # ビルド成果物のみをコピー
 COPY --from=builder /app/.next ./.next
