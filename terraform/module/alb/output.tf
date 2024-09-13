@@ -19,3 +19,23 @@ output "backend_ecs_tg" {
   description = "Backend Target Group ARN"
   value       = aws_lb_target_group.backend_ecs_tg.arn
 }
+
+output "frontend_ecs_blue_tg" {
+  description = "Blue Frontend Target Group ARN"
+  value       = aws_lb_target_group.frontend_ecs_blue_tg.arn
+}
+
+output "frontend_ecs_green_tg" {
+  description = "Green Frontend Target Group ARN"
+  value       = aws_lb_target_group.frontend_ecs_green_tg.arn
+}
+
+output "https_listener" {
+  description = "Frontend HTTPS Listener ARN"
+  value       = aws_lb_listener.https_listener.arn
+}
+
+output "frontend_4430_listener" {
+  description = "Frontend 4430 Listener ARN"
+  value       = aws_lb_listener.frontend_4430_listener.arn
+}

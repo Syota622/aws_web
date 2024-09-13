@@ -84,8 +84,9 @@ resource "aws_ecs_service" "frontend_ecs_service" {
     type = "CODE_DEPLOY"
   }
 
+  # Blue環境用のターゲットグループ
   load_balancer {
-    target_group_arn = aws_lb_target_group.frontend_ecs_blue_tg.arn # Blue環境用のターゲットグループ
+    target_group_arn = var.frontend_ecs_blue_tg
     container_name   = "${var.pj}-frontend-container-${var.env}"
     container_port   = 3000
   }
@@ -108,7 +109,7 @@ resource "aws_security_group" "frontend_ecs_sg" {
     from_port       = 3000
     to_port         = 3000
     protocol        = "tcp"
-    security_groups = [aws_security_group.frontend_alb_sg.id]
+    security_groups = [var.alb_sg_id]
     cidr_blocks     = ["0.0.0.0/0"]
   }
 

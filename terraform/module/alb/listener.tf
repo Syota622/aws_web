@@ -39,3 +39,17 @@ resource "aws_lb_listener" "https_listener" {
   }
 
 }
+
+# 新しい4430ポートのリスナー
+resource "aws_lb_listener" "frontend_4430_listener" {
+  load_balancer_arn = aws_lb.ecs_alb.arn
+  port              = "4430"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.acm_certificate
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend_ecs_green_tg.arn
+  }
+}
