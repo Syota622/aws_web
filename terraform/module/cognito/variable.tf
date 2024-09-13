@@ -1,7 +1,7 @@
 ### variable ###
 variable "pj" {}
 variable "env" {}
-variable "backend_alb_dns" {}
+variable "alb_dns" {}
 
 locals {
   basic_callback_urls = {
