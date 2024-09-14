@@ -70,52 +70,49 @@ jobs:
           rm -rf /tmp/.buildx-cache-frontend-ecs
           mv /tmp/.buildx-cache-frontend-ecs-new /tmp/.buildx-cache-frontend-ecs
 
-      # # イメージにタグを付ける
-      # - name: Tag Frontend Image
-      #   run: |
-      #     docker tag ${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }} \
-      #       ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }}
+      # イメージにタグを付ける
+      - name: Tag Frontend Image
+        run: |
+          docker tag ${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }} \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }}
 
-      # # イメージをECRにプッシュ
-      # - name: Push Frontend Image to ECR
-      #   run: |
-      #     docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }}
+      # イメージをECRにプッシュ
+      - name: Push Frontend Image to ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }}
 
-      # # ECSタスク定義を更新
-      # - name: Update ECS task definition
-      #   run: |
-      #     TASK_DEFINITION=$(cat ${{ github.workspace }}/.github/workflows/ecs_task_definition/frontend_task_definition.json)
-      #     TASK_DEFINITION=$(echo "$TASK_DEFINITION" | sed -e "s/AWS_ACCOUNT_ID/${{ secrets.AWS_ACCOUNT_ID }}/g" -e "s/PROJECT/${{ secrets.PROJECT }}/g" -e "s/ENVIRONMENT/${{ inputs.env_var }}/g")
-      #     NEW_TASK_DEFINITION=$(echo "$TASK_DEFINITION" | jq --arg IMAGE "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }}" '
-      #       .containerDefinitions[0].image = $IMAGE
-      #     ')
-      #     NEW_TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION" --query 'taskDefinition.taskDefinitionArn' --output text)
-      #     echo "NEW_TASK_DEFINITION_ARN=$NEW_TASK_DEFINITION_ARN" >> "$GITHUB_ENV"
+      # ECSタスク定義を更新
+      - name: Update ECS task definition
+        run: |
+          TASK_DEFINITION=$(cat ${{ github.workspace }}/.github/workflows/ecs_task_definition/frontend_task_definition.json)
+          TASK_DEFINITION=$(echo "$TASK_DEFINITION" | sed -e "s/AWS_ACCOUNT_ID/${{ secrets.AWS_ACCOUNT_ID }}/g" -e "s/PROJECT/${{ secrets.PROJECT }}/g" -e "s/ENVIRONMENT/${{ inputs.env_var }}/g")
+          NEW_TASK_DEFINITION=$(echo "$TASK_DEFINITION" | jq --arg IMAGE "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }}" '
+            .containerDefinitions[0].image = $IMAGE
+          ')
+          NEW_TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION" --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "NEW_TASK_DEFINITION_ARN=$NEW_TASK_DEFINITION_ARN" >> "$GITHUB_ENV"
 
-      # # CodeDeployを使用してデプロイを開始
-      # - name: Prepare AppSpec and Deploy to ECS using CodeDeploy
-      #   run: |
-      #     # export ECS_CLUSTER="${{ secrets.PROJECT }}-frontend-ecs-cluster-${{ inputs.env_var }}"
-      #     # export ECS_SERVICE="${{ secrets.PROJECT }}-frontend-ecs-service-${{ inputs.env_var }}"
-      #     # echo "ECS_CLUSTER: $ECS_CLUSTER"
-      #     # echo "ECS_SERVICE: $ECS_SERVICE"
+      # CodeDeployを使用してデプロイを開始
+      - name: Prepare AppSpec and Deploy to ECS using CodeDeploy
+        run: |
+          # export ECS_CLUSTER="${{ secrets.PROJECT }}-frontend-ecs-cluster-${{ inputs.env_var }}"
+          # export ECS_SERVICE="${{ secrets.PROJECT }}-frontend-ecs-service-${{ inputs.env_var }}"
+          # echo "ECS_CLUSTER: $ECS_CLUSTER"
+          # echo "ECS_SERVICE: $ECS_SERVICE"
           
-      #     # AppSpecファイルの内容を変数に格納
-      #     APPSPEC_CONTENT=$(cat ${{ github.workspace }}/.github/workflows/codedeploy/appspec.yaml)
+          # AppSpecファイルの内容を変数に格納
+          APPSPEC_CONTENT=$(cat ${{ github.workspace }}/.github/workflows/codedeploy/appspec.yaml)
           
-      #     # プレースホルダーを実際の値に置換
-      #     APPSPEC_CONTENT=$(echo "$APPSPEC_CONTENT" | sed -e "s|<TASK_DEFINITION>|$NEW_TASK_DEFINITION_ARN|g")
-      #     APPSPEC_CONTENT=$(echo "$APPSPEC_CONTENT" | sed -e "s|<CONTAINER_NAME>|${{ secrets.PROJECT }}-frontend-container-${{ inputs.env_var }}|g")
-      #     APPSPEC_CONTENT=$(echo "$APPSPEC_CONTENT" | sed -e "s|<CONTAINER_PORT>|3000|g")
+          # プレースホルダーを実際の値に置換
+          APPSPEC_CONTENT=$(echo "$APPSPEC_CONTENT" | sed -e "s|<TASK_DEFINITION>|$NEW_TASK_DEFINITION_ARN|g")
+          APPSPEC_CONTENT=$(echo "$APPSPEC_CONTENT" | sed -e "s|<CONTAINER_NAME>|${{ secrets.PROJECT }}-frontend-container-${{ inputs.env_var }}|g")
+          APPSPEC_CONTENT=$(echo "$APPSPEC_CONTENT" | sed -e "s|<CONTAINER_PORT>|3000|g")
           
-      #     # 更新されたAppSpec内容をBase64エンコード
-      #     APPSPEC_BASE64=$(echo "$APPSPEC_CONTENT" | base64 -w 0)
-          
-      #     # CodeDeployを使用してデプロイを開始
-      #     aws deploy create-deployment \
-      #       --application-name ${{ secrets.PROJECT }}-frontend-app-${{ inputs.env_var }} \
-      #       --deployment-group-name ${{ secrets.PROJECT }}-frontend-dg-${{ inputs.env_var }} \
-      #       --revision revisionType=AppSpecContent,appSpecContent="{content='$APPSPEC_BASE64'}" \
-      #       --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
-      #       --description "Deployment from GitHub Actions" \
-      #       --region ${{ env.AWS_REGION }}
+          # CodeDeployを使用してデプロイを開始
+          aws deploy create-deployment \
+            --application-name ${{ secrets.PROJECT }}-frontend-app-${{ inputs.env_var }} \
+            --deployment-group-name ${{ secrets.PROJECT }}-frontend-dg-${{ inputs.env_var }} \
+            --revision revisionType=AppSpecContent,appSpecContent="{content='$APPSPEC_CONTENT'}" \
+            --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
+            --description "Deployment from GitHub Actions" \
+            --region ${{ env.AWS_REGION }}
