@@ -3,7 +3,7 @@
 # 設定
 BACKEND_ECS_CLUSTER_NAME="learn-backend-ecs-cluster-prod"
 BACKEND_ECS_SERVICE_NAME="learn-backend-ecs-service-prod"
-CONTAINER_NAME="learn-container-prod"
+CONTAINER_NAME="learn-backend-container-prod"
 
 # 最新のタスクARNを取得
 TASK_ARN=$(aws ecs list-tasks --cluster $BACKEND_ECS_CLUSTER_NAME --service-name $BACKEND_ECS_SERVICE_NAME --query 'taskArns[0]' --output text)

@@ -21,7 +21,7 @@
           "valueFrom": "arn:aws:secretsmanager:ap-northeast-1:AWS_ACCOUNT_ID:secret:PROJECT/aurora/serverless/ENVIRONMENT-ygUo8A"
         },
         {
-          "name": "ENVIRONMENT",
+          "name": "ENV_VAR",
           "valueFrom": "arn:aws:secretsmanager:ap-northeast-1:AWS_ACCOUNT_ID:secret:PROJECT/backend/ecs/environment/ENVIRONMENT-oN8ym0"
         }
       ],

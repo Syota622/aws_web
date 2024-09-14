@@ -84,22 +84,23 @@ jobs:
       # ECSタスク定義を更新
       - name: Update ECS task definition
         run: |
+          # タスク定義ファイルを変数に格納
           TASK_DEFINITION=$(cat ${{ github.workspace }}/.github/workflows/ecs_task_definition/frontend_task_definition.json)
+          # プレースホルダーを実際の値に置換
           TASK_DEFINITION=$(echo "$TASK_DEFINITION" | sed -e "s/AWS_ACCOUNT_ID/${{ secrets.AWS_ACCOUNT_ID }}/g" -e "s/PROJECT/${{ secrets.PROJECT }}/g" -e "s/ENVIRONMENT/${{ inputs.env_var }}/g")
+          # イメージを置換
           NEW_TASK_DEFINITION=$(echo "$TASK_DEFINITION" | jq --arg IMAGE "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }}" '
             .containerDefinitions[0].image = $IMAGE
           ')
+          # NEW_TASK_DEFINITIONを出力
+          echo "$NEW_TASK_DEFINITION"
+          # タスク定義を登録
           NEW_TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION" --query 'taskDefinition.taskDefinitionArn' --output text)
           echo "NEW_TASK_DEFINITION_ARN=$NEW_TASK_DEFINITION_ARN" >> "$GITHUB_ENV"
 
       # CodeDeployを使用してデプロイを開始
       - name: Prepare AppSpec and Deploy to ECS using CodeDeploy
         run: |
-          # export ECS_CLUSTER="${{ secrets.PROJECT }}-frontend-ecs-cluster-${{ inputs.env_var }}"
-          # export ECS_SERVICE="${{ secrets.PROJECT }}-frontend-ecs-service-${{ inputs.env_var }}"
-          # echo "ECS_CLUSTER: $ECS_CLUSTER"
-          # echo "ECS_SERVICE: $ECS_SERVICE"
-          
           # AppSpecファイルの内容を変数に格納
           APPSPEC_CONTENT=$(cat ${{ github.workspace }}/.github/workflows/codedeploy/appspec.yaml)
           
@@ -107,6 +108,9 @@ jobs:
           APPSPEC_CONTENT=$(echo "$APPSPEC_CONTENT" | sed -e "s|<TASK_DEFINITION>|$NEW_TASK_DEFINITION_ARN|g")
           APPSPEC_CONTENT=$(echo "$APPSPEC_CONTENT" | sed -e "s|<CONTAINER_NAME>|${{ secrets.PROJECT }}-frontend-container-${{ inputs.env_var }}|g")
           APPSPEC_CONTENT=$(echo "$APPSPEC_CONTENT" | sed -e "s|<CONTAINER_PORT>|3000|g")
+
+          # APPSPEC_CONTENTを出力
+          echo "$APPSPEC_CONTENT"
           
           # CodeDeployを使用してデプロイを開始
           aws deploy create-deployment \

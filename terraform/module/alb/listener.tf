@@ -52,4 +52,10 @@ resource "aws_lb_listener" "frontend_4430_listener" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.frontend_ecs_green_tg.arn
   }
+
+  lifecycle {
+    ignore_changes = [
+      default_action,
+    ]
+  }
 }
