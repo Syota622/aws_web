@@ -15,6 +15,12 @@ resource "aws_lb_listener_rule" "frontend_ecs_blue_tg" {
       values = ["mokokero.com"]
     }
   }
+
+  lifecycle {
+    ignore_changes = [
+      action,
+    ]
+  }
 }
 
 # バックエンド api.mokokero.com リスナールール

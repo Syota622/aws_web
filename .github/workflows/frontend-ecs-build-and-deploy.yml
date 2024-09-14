@@ -1,0 +1,122 @@
+name: Frontend ECS Build and Deploy
+
+on:
+  workflow_call:
+    inputs:
+      env_var:
+        required: true
+        type: string
+
+env:
+  AWS_REGION: ap-northeast-1
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-22.04
+    environment: 
+      name: ${{ inputs.env_var }}
+    steps:
+      # リポジトリのコードをチェックアウト
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # AWS認証情報を設定
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.PROJECT }}-github-actions-role
+          role-session-name: ${{ secrets.PROJECT }}-github-actions
+
+      # Amazon ECRにログイン
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ARM64アーキテクチャのエミュレーションをセットアップ
+      - name: Set up QEMU for arm64
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      # Docker Buildxをセットアップ
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Dockerキャッシュをセットアップ
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache-frontend-ecs
+          key: ${{ runner.os }}-buildx-frontend-ecs-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-frontend-ecs-
+
+      # フロントエンドイメージをビルド
+      - name: Build Frontend Image
+        run: |
+          docker buildx create --use
+          docker buildx build \
+            --platform linux/arm64 \
+            -t ${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }} \
+            -f frontend/docker/${{ inputs.env_var }}/Dockerfile \
+            --cache-from type=local,src=/tmp/.buildx-cache-frontend-ecs \
+            --cache-to type=local,dest=/tmp/.buildx-cache-frontend-ecs-new,mode=max \
+            --load \
+            frontend
+
+      # キャッシュを移動
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache-frontend-ecs
+          mv /tmp/.buildx-cache-frontend-ecs-new /tmp/.buildx-cache-frontend-ecs
+
+      # イメージにタグを付ける
+      - name: Tag Frontend Image
+        run: |
+          docker tag ${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }} \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }}
+
+      # イメージをECRにプッシュ
+      - name: Push Frontend Image to ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }}
+
+      # ECSタスク定義を更新
+      - name: Update ECS task definition
+        run: |
+          # タスク定義ファイルを変数に格納
+          TASK_DEFINITION=$(cat ${{ github.workspace }}/.github/workflows/ecs_task_definition/frontend_task_definition.json)
+          # プレースホルダーを実際の値に置換
+          TASK_DEFINITION=$(echo "$TASK_DEFINITION" | sed -e "s/AWS_ACCOUNT_ID/${{ secrets.AWS_ACCOUNT_ID }}/g" -e "s/PROJECT/${{ secrets.PROJECT }}/g" -e "s/ENVIRONMENT/${{ inputs.env_var }}/g")
+          # イメージを置換
+          NEW_TASK_DEFINITION=$(echo "$TASK_DEFINITION" | jq --arg IMAGE "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ secrets.PROJECT }}-frontend-private-repository-${{ inputs.env_var }}:${{ github.sha }}" '
+            .containerDefinitions[0].image = $IMAGE
+          ')
+          # NEW_TASK_DEFINITIONを出力
+          echo "$NEW_TASK_DEFINITION"
+          # タスク定義を登録
+          NEW_TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION" --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "NEW_TASK_DEFINITION_ARN=$NEW_TASK_DEFINITION_ARN" >> "$GITHUB_ENV"
+
+      # CodeDeployを使用してデプロイを開始
+      - name: Prepare AppSpec and Deploy to ECS using CodeDeploy
+        run: |
+          # AppSpecファイルの内容を変数に格納
+          APPSPEC_CONTENT=$(cat ${{ github.workspace }}/.github/workflows/codedeploy/appspec.yaml)
+          
+          # プレースホルダーを実際の値に置換
+          APPSPEC_CONTENT=$(echo "$APPSPEC_CONTENT" | sed -e "s|<TASK_DEFINITION>|$NEW_TASK_DEFINITION_ARN|g")
+          APPSPEC_CONTENT=$(echo "$APPSPEC_CONTENT" | sed -e "s|<CONTAINER_NAME>|${{ secrets.PROJECT }}-frontend-container-${{ inputs.env_var }}|g")
+          APPSPEC_CONTENT=$(echo "$APPSPEC_CONTENT" | sed -e "s|<CONTAINER_PORT>|3000|g")
+
+          # APPSPEC_CONTENTを出力
+          echo "$APPSPEC_CONTENT"
+          
+          # CodeDeployを使用してデプロイを開始
+          aws deploy create-deployment \
+            --application-name ${{ secrets.PROJECT }}-frontend-app-${{ inputs.env_var }} \
+            --deployment-group-name ${{ secrets.PROJECT }}-frontend-dg-${{ inputs.env_var }} \
+            --revision revisionType=AppSpecContent,appSpecContent="{content='$APPSPEC_CONTENT'}" \
+            --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
+            --description "Deployment from GitHub Actions" \
+            --region ${{ env.AWS_REGION }}

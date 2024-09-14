@@ -24,16 +24,16 @@ type CognitoConfig struct {
 
 func InitCognitoClient() error {
 	// 環境変数からJSON形式のCognito設定を取得
-	envJSON := os.Getenv("ENVIRONMENT")
+	envJSON := os.Getenv("ENV_VAR")
 	if envJSON == "" {
-		return errors.New("ENVIRONMENT 環境変数が設定されていません")
+		return errors.New("ENV_VAR 環境変数が設定されていません")
 	}
 
 	var cognitoConfig CognitoConfig
 	if err := json.Unmarshal([]byte(envJSON), &cognitoConfig); err != nil {
 		// デバッグ: JSON解析エラーの詳細をログに出力
 		log.Printf("JSON解析エラー: %v", err)
-		return fmt.Errorf("ENVIRONMENT 環境変数のJSONパースに失敗しました: %v", err)
+		return fmt.Errorf("ENV_VAR 環境変数のJSONパースに失敗しました: %v", err)
 	}
 
 	CognitoClientID = cognitoConfig.ClientID

@@ -47,14 +47,14 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
     },
     # 環境変数の設定（SecretsManager）
     # DB_CONFIG: Terraformで作成したシークレット
-    # ENVIRONMENT: マネジメントコンソールから作成したシークレット
+    # ENV_VAR: マネジメントコンソールから作成したシークレット
     secrets = [
       {
         name      = "DB_CONFIG",
         valueFrom = var.secrets_manager_arn
       },
       {
-        name      = "ENVIRONMENT",
+        name      = "ENV_VAR",
         valueFrom = aws_secretsmanager_secret.backend_environment.id
       },
     ]

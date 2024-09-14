@@ -13,6 +13,7 @@ on:
       - 'backend/**'
       - 'db/migrations/**'
       - 'lambda/migrate/**'
+      - 'frontend/**'
 
 # GitHub Actionsで利用するIAMロールの権限設定
 permissions:
@@ -34,7 +35,7 @@ jobs:
       env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     secrets: inherit
 
-  # ECSのビルドとデプロイを実行するジョブ
+  # ECSのビルドとデプロイを実行するジョブ（バックエンド）
   # needsの影響で、deploy-lambda-and-migrateがスキップされた場合は、ecs-build-and-deployもスキップされるのを防ぐために、always()を利用する
   backend-ecs-build-and-deploy:
     needs: [check-changes, deploy-lambda-and-migrate]
@@ -47,9 +48,23 @@ jobs:
       env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
     secrets: inherit
 
+  # ECSのビルドとデプロイを実行するジョブ（フロントエンド）
+  # needsの影響で、deploy-lambda-and-migrateがスキップされた場合は、ecs-build-and-deployもスキップされるのを防ぐために、always()を利用する
+  frontend-ecs-build-and-deploy:
+    needs: [check-changes, deploy-lambda-and-migrate, backend-ecs-build-and-deploy]
+    if: |
+      always() &&
+      needs.check-changes.outputs.frontend_changed == 'true' &&
+      (needs.deploy-lambda-and-migrate.result == 'success' || needs.deploy-lambda-and-migrate.result == 'skipped') &&
+      (needs.backend-ecs-build-and-deploy.result == 'success' || needs.backend-ecs-build-and-deploy.result == 'skipped')
+    uses: ./.github/workflows/frontend-ecs-build-and-deploy.yml
+    with:
+      env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
+    secrets: inherit
+
   # デバッグ用のジョブ
   debug-job-status:
-    needs: [check-changes, deploy-lambda-and-migrate, backend-ecs-build-and-deploy]
+    needs: [check-changes, deploy-lambda-and-migrate, backend-ecs-build-and-deploy, frontend-ecs-build-and-deploy]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -58,5 +73,7 @@ jobs:
           echo "check-changes result: ${{ needs.check-changes.result }}"
           echo "lambda_changed: ${{ needs.check-changes.outputs.lambda_changed }}"
           echo "backend_changed: ${{ needs.check-changes.outputs.backend_changed }}"
+          echo "frontend_changed: ${{ needs.check-changes.outputs.frontend_changed }}"
           echo "deploy-lambda-and-migrate result: ${{ needs.deploy-lambda-and-migrate.result }}"
           echo "backend-ecs-build-and-deploy result: ${{ needs.backend-ecs-build-and-deploy.result }}"
+          echo "frontend-ecs-build-and-deploy result: ${{ needs.frontend-ecs-build-and-deploy.result }}"
