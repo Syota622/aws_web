@@ -27,44 +27,60 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
   }
 
   # コンテナ定義
-  container_definitions = jsonencode([{
-    name = "${var.pj}-backend-container-${var.env}",
-
-    # ECRのイメージを指定: GitHub ActionsでビルドしたイメージのURIを指定
-    image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-private-repository-${var.env}:image-uri", 
-    portMappings = [{
-      containerPort = 8080,
-      hostPort      = 8080
-    }]
-    # ログの設定
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        awslogs-group         = aws_cloudwatch_log_group.backend_ecs_logs.name
-        awslogs-region        = "ap-northeast-1"
-        awslogs-stream-prefix = "ecs"
+  container_definitions = jsonencode([
+    {
+      name  = "${var.pj}-backend-container-${var.env}"
+      image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-private-repository-${var.env}:45728e2451e55a8ff2b4405e0fb6edeb449b1d44"
+      portMappings = [{
+        containerPort = 8080
+        hostPort      = 8080
+      }]
+      # FireLens用のログ設定
+      logConfiguration = {
+        logDriver = "awsfirelens"
+        options = {
+          Name       = "s3"
+          region     = "ap-northeast-1"
+          bucket     = aws_s3_bucket.ecs_log_s3.id
+          total_file_size = "1M"
+          use_put_object  = "On"
+        }
       }
+      secrets = [
+        {
+          name      = "DB_CONFIG"
+          valueFrom = var.secrets_manager_arn
+        },
+        {
+          name      = "ENV_VAR"
+          valueFrom = aws_secretsmanager_secret.backend_environment.id
+        },
+      ]
     },
-    # 環境変数の設定（SecretsManager）
-    # DB_CONFIG: Terraformで作成したシークレット
-    # ENV_VAR: マネジメントコンソールから作成したシークレット
-    secrets = [
-      {
-        name      = "DB_CONFIG",
-        valueFrom = var.secrets_manager_arn
-      },
-      {
-        name      = "ENV_VAR",
-        valueFrom = aws_secretsmanager_secret.backend_environment.id
-      },
-    ]
-  }])
+    {
+      name  = "log_router"
+      image = "public.ecr.aws/aws-observability/aws-for-fluent-bit:stable"
+      essential = true
+      firelensConfiguration = {
+        type = "fluentbit"
+      }
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.backend_ecs_logs.name
+          awslogs-region        = "ap-northeast-1"
+          awslogs-stream-prefix = "firelens"
+        }
+      }
+      memoryReservation = 50
+    }
+  ])
 
-  lifecycle {
-    ignore_changes = [
-      container_definitions
-    ]
-  }
+  # lifecycle {
+  #   ignore_changes = [
+  #     container_definitions
+  #   ]
+  # }
 }
 
 ### ECS Service ###
