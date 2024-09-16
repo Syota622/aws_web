@@ -43,6 +43,7 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
           region     = "ap-northeast-1"
           bucket     = aws_s3_bucket.ecs_log_s3.id
           total_file_size = "1M"
+          upload_timeout  = "1m"
           use_put_object  = "On"
           s3_key_format   = "/app-logs/%Y/%m/%d/%H/%M"
         }
@@ -75,6 +76,7 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
           region     = "ap-northeast-1"
           bucket     = aws_s3_bucket.ecs_log_s3.id
           total_file_size = "1M"
+          upload_timeout  = "1m"
           use_put_object  = "On"
           s3_key_format   = "/firelens-logs/%Y/%m/%d/%H/%M"
         }
