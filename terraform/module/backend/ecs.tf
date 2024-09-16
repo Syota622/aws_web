@@ -30,7 +30,7 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
   container_definitions = jsonencode([
     {
       name  = "${var.pj}-backend-container-${var.env}"
-      image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-private-repository-${var.env}:45728e2451e55a8ff2b4405e0fb6edeb449b1d44"
+      image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-backend-private-repository-${var.env}:45728e2451e55a8ff2b4405e0fb6edeb449b1d44"
       portMappings = [{
         containerPort = 8080
         hostPort      = 8080
@@ -44,6 +44,7 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
           bucket     = aws_s3_bucket.ecs_log_s3.id
           total_file_size = "1M"
           use_put_object  = "On"
+          s3_key_format   = "/app-logs/%Y/%m/%d/%H/%M"
         }
       }
       secrets = [
@@ -63,13 +64,19 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
       essential = true
       firelensConfiguration = {
         type = "fluentbit"
+        options = {
+          enable-ecs-log-metadata = "true"
+        }
       }
       logConfiguration = {
-        logDriver = "awslogs"
+        logDriver = "awsfirelens"
         options = {
-          awslogs-group         = aws_cloudwatch_log_group.backend_ecs_logs.name
-          awslogs-region        = "ap-northeast-1"
-          awslogs-stream-prefix = "firelens"
+          Name       = "s3"
+          region     = "ap-northeast-1"
+          bucket     = aws_s3_bucket.ecs_log_s3.id
+          total_file_size = "1M"
+          use_put_object  = "On"
+          s3_key_format   = "/firelens-logs/%Y/%m/%d/%H/%M"
         }
       }
       memoryReservation = 50
@@ -120,32 +127,7 @@ resource "aws_ecs_service" "backend_ecs_service" {
   }
 }
 
-resource "aws_security_group" "backend_ecs_sg" {
-  name        = "${var.pj}-backend-ecs-service-sg-${var.env}"
-  description = "ECS Service Security Group"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    from_port       = 8080
-    to_port         = 8080
-    protocol        = "tcp"
-    security_groups = [var.alb_sg_id]
-    cidr_blocks     = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.pj}-backend-ecs-service-sg-${var.env}"
-  }
-}
-
-resource "aws_cloudwatch_log_group" "backend_ecs_logs" {
-  name              = "/ecs/${var.pj}-backend-${var.env}"
-  retention_in_days = 30
-}
+# resource "aws_cloudwatch_log_group" "backend_ecs_logs" {
+#   name              = "/ecs/${var.pj}-backend-${var.env}"
+#   retention_in_days = 30
+# }
