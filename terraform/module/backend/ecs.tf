@@ -31,6 +31,7 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
     {
       name  = "${var.pj}-backend-container-${var.env}"
       image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-backend-private-repository-${var.env}:45728e2451e55a8ff2b4405e0fb6edeb449b1d44"
+      readonlyRootFilesystem = true
       portMappings = [{
         containerPort = 8080
         hostPort      = 8080
@@ -62,6 +63,7 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
     {
       name  = "log_router"
       image = "public.ecr.aws/aws-observability/aws-for-fluent-bit:stable"
+      readonlyRootFilesystem = true
       essential = true
       firelensConfiguration = {
         type = "fluentbit"
