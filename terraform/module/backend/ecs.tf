@@ -39,14 +39,12 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
       # FireLens用のログ設定
       logConfiguration = {
         logDriver = "awsfirelens"
+        # cloudwatch logs
         options = {
-          Name       = "s3"
+          Name       = "cloudwatch"
           region     = "ap-northeast-1"
-          bucket     = aws_s3_bucket.ecs_log_s3.id
-          total_file_size = "1M"
-          upload_timeout  = "1m"
-          use_put_object  = "On"
-          s3_key_format   = "/app-logs/%Y/%m/%d/%H/%M"
+          log_group  = aws_cloudwatch_log_group.backend_ecs_logs.name
+          log_stream = "ecs"
         }
       }
       secrets = [
@@ -87,11 +85,11 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
     }
   ])
 
-  # lifecycle {
-  #   ignore_changes = [
-  #     container_definitions
-  #   ]
-  # }
+  lifecycle {
+    ignore_changes = [
+      container_definitions
+    ]
+  }
 }
 
 ### ECS Service ###
@@ -131,7 +129,7 @@ resource "aws_ecs_service" "backend_ecs_service" {
   }
 }
 
-# resource "aws_cloudwatch_log_group" "backend_ecs_logs" {
-#   name              = "/ecs/${var.pj}-backend-${var.env}"
-#   retention_in_days = 30
-# }
+resource "aws_cloudwatch_log_group" "backend_ecs_logs" {
+  name              = "/ecs/${var.pj}-backend-${var.env}"
+  retention_in_days = 30
+}
