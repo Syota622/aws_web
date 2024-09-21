@@ -39,12 +39,11 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
       # FireLens用のログ設定
       logConfiguration = {
         logDriver = "awsfirelens"
-        # cloudwatch logs
         options = {
           Name       = "cloudwatch"
           region     = "ap-northeast-1"
-          log_group  = aws_cloudwatch_log_group.backend_ecs_logs.name
-          log_stream = "ecs"
+          log_group_name = aws_cloudwatch_log_group.backend_ecs_logs.name
+          log_stream_prefix = "ecs"
         }
       }
       secrets = [
@@ -60,8 +59,8 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
     },
     {
       name  = "log_router"
-      image = "public.ecr.aws/aws-observability/aws-for-fluent-bit:stable"
-      readonlyRootFilesystem = true
+      image = "public.ecr.aws/aws-observability/aws-for-fluent-bit:init-latest"
+      readonlyRootFilesystem = false
       essential = true
       firelensConfiguration = {
         type = "fluentbit"
@@ -69,27 +68,34 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
           enable-ecs-log-metadata = "true"
         }
       }
+      environment = [
+        {
+          name  = "S3_CONFIG_BUCKET"
+          value = aws_s3_bucket.backend_config.bucket
+        },
+        {
+          name  = "S3_CONFIG_KEY"
+          value = "fluent-bit.conf"
+        }
+      ]
+      # FireLens用のログ設定
       logConfiguration = {
-        logDriver = "awsfirelens"
+        logDriver = "awslogs"
         options = {
-          Name       = "s3"
-          region     = "ap-northeast-1"
-          bucket     = aws_s3_bucket.ecs_log_s3.id
-          total_file_size = "1M"
-          upload_timeout  = "1m"
-          use_put_object  = "On"
-          s3_key_format   = "/firelens-logs/%Y/%m/%d/%H/%M"
+          awslogs-group = aws_cloudwatch_log_group.backend_ecs_logs.name
+          awslogs-region = "ap-northeast-1"
+          awslogs-stream-prefix = "firelens"
         }
       }
       memoryReservation = 50
     }
   ])
 
-  lifecycle {
-    ignore_changes = [
-      container_definitions
-    ]
-  }
+  # lifecycle {
+  #   ignore_changes = [
+  #     container_definitions
+  #   ]
+  # }
 }
 
 ### ECS Service ###
@@ -129,7 +135,3 @@ resource "aws_ecs_service" "backend_ecs_service" {
   }
 }
 
-resource "aws_cloudwatch_log_group" "backend_ecs_logs" {
-  name              = "/ecs/${var.pj}-backend-${var.env}"
-  retention_in_days = 30
-}
