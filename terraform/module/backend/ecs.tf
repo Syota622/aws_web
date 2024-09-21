@@ -39,12 +39,7 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
       # FireLens用のログ設定
       logConfiguration = {
         logDriver = "awsfirelens"
-        options = {
-          Name       = "cloudwatch"
-          region     = "ap-northeast-1"
-          log_group_name = aws_cloudwatch_log_group.backend_ecs_logs.name
-          log_stream_prefix = "ecs"
-        }
+        options = {}
       }
       secrets = [
         {
@@ -70,12 +65,8 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
       }
       environment = [
         {
-          name  = "S3_CONFIG_BUCKET"
-          value = aws_s3_bucket.backend_config.bucket
-        },
-        {
-          name  = "S3_CONFIG_KEY"
-          value = "fluent-bit.conf"
+          name  = "aws_fluent_bit_init_s3_1"
+          value = "${aws_s3_bucket.backend_config.arn}/${aws_s3_object.firelens_config.key}"
         }
       ]
       # FireLens用のログ設定
