@@ -112,27 +112,27 @@ jobs:
           # APPSPEC_CONTENTを出力
           echo "$APPSPEC_CONTENT"
 
-          # 現在のデプロイメントを取得
-          CURRENT_DEPLOYMENT=$(aws deploy list-deployments \
-            --application-name ${{ secrets.PROJECT }}-frontend-app-${{ inputs.env_var }} \
-            --deployment-group-name ${{ secrets.PROJECT }}-frontend-dg-${{ inputs.env_var }} \
-            --include-only-statuses InProgress \
-            --query 'deployments[0]' \
-            --output text \
-            --region ${{ env.AWS_REGION }})
+          # # 現在のデプロイメントを取得
+          # CURRENT_DEPLOYMENT=$(aws deploy list-deployments \
+          #   --application-name ${{ secrets.PROJECT }}-frontend-app-${{ inputs.env_var }} \
+          #   --deployment-group-name ${{ secrets.PROJECT }}-frontend-dg-${{ inputs.env_var }} \
+          #   --include-only-statuses InProgress \
+          #   --query 'deployments[0]' \
+          #   --output text \
+          #   --region ${{ env.AWS_REGION }})
 
-          # 進行中のデプロイメントがある場合、停止する
-          if [ ! -z "$CURRENT_DEPLOYMENT" ]; then
-            echo "Stopping current deployment: $CURRENT_DEPLOYMENT"
-            aws deploy stop-deployment \
-              --deployment-id $CURRENT_DEPLOYMENT \
-              --region ${{ env.AWS_REGION }}
+          # # 進行中のデプロイメントがある場合、停止する
+          # if [ ! -z "$CURRENT_DEPLOYMENT" ]; then
+          #   echo "Stopping current deployment: $CURRENT_DEPLOYMENT"
+          #   aws deploy stop-deployment \
+          #     --deployment-id $CURRENT_DEPLOYMENT \
+          #     --region ${{ env.AWS_REGION }}
             
-            # デプロイメントが完全に停止するまで待機
-            aws deploy wait deployment-stopped \
-              --deployment-id $CURRENT_DEPLOYMENT \
-              --region ${{ env.AWS_REGION }}
-          fi
+          #   # デプロイメントが完全に停止するまで待機
+          #   aws deploy wait deployment-stopped \
+          #     --deployment-id $CURRENT_DEPLOYMENT \
+          #     --region ${{ env.AWS_REGION }}
+          # fi
           
           # CodeDeployを使用してデプロイを開始
           aws deploy create-deployment \
