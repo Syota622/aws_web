@@ -25,15 +25,45 @@
           "valueFrom": "arn:aws:secretsmanager:ap-northeast-1:AWS_ACCOUNT_ID:secret:PROJECT/backend/ecs/environment/ENVIRONMENT-oN8ym0"
         }
       ],
+      "readonlyRootFilesystem": true,
       "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "/ecs/PROJECT-backend-ENVIRONMENT",
-          "awslogs-region": "ap-northeast-1",
-          "awslogs-stream-prefix": "ecs"
-        }
+          "logDriver": "awsfirelens",
+          "options": {}
       },
       "systemControls": []
+    },
+    {
+        "name": "log_router",
+        "image": "public.ecr.aws/aws-observability/aws-for-fluent-bit:init-latest",
+        "cpu": 0,
+        "memoryReservation": 50,
+        "portMappings": [],
+        "essential": true,
+        "environment": [
+            {
+                "name": "aws_fluent_bit_init_s3_1",
+                "value": "arn:aws:s3:::PROJECT-backend-config-ENVIRONMENT/firelens/fluent-bit.conf"
+            }
+        ],
+        "mountPoints": [],
+        "volumesFrom": [],
+        "user": "0",
+        "readonlyRootFilesystem": false,
+        "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-group": "/ecs/PROJECT-backend-ENVIRONMENT",
+                "awslogs-region": "ap-northeast-1",
+                "awslogs-stream-prefix": "firelens"
+            }
+        },
+        "systemControls": [],
+        "firelensConfiguration": {
+            "type": "fluentbit",
+            "options": {
+                "enable-ecs-log-metadata": "true"
+            }
+        }
     }
   ],
   "family": "PROJECT-backend-task-definition-ENVIRONMENT",
@@ -50,5 +80,15 @@
     "FARGATE"
   ],
   "cpu": "256",
-  "memory": "512"
+  "memory": "512",
+  "tags": [
+      {
+          "key": "env",
+          "value": "ENVIRONMENT"
+      },
+      {
+          "key": "project",
+          "value": "PROJECT"
+      }
+  ]
 }
