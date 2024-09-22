@@ -41,4 +41,9 @@ Hub: ハブとは、中心地や中心部を意味する。ユーザーが、必
 https://www.figma.com/design/gatM8ZlGsOcfVa1bYibKAs/RoadmapHub?node-id=13-42&t=D14kIP9EApyI8RYc-1
 
 # AWS全体構成図
+- AWSの全体構成図です。
+- その他の機能は下記の通りです
+  - ECS Blue/Green Deployment
+  - Firelensによるログ形式の変更やCloudWatch Logsへの出力
+  - ハッシュ値を用いたECRイメージのバージョン管理
 ![AWS全体構成図](./AWS全体構成図.png)
