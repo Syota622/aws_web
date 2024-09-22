@@ -13,7 +13,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.16
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gen v0.3.26
-	gorm.io/gorm v1.25.11
+	gorm.io/gorm v1.25.12
 )
 
 require (
