@@ -27,38 +27,60 @@ resource "aws_ecs_task_definition" "backend_task_definition" {
   }
 
   # コンテナ定義
-  container_definitions = jsonencode([{
-    name = "${var.pj}-backend-container-${var.env}",
-
-    # ECRのイメージを指定: GitHub ActionsでビルドしたイメージのURIを指定
-    image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-private-repository-${var.env}:image-uri", 
-    portMappings = [{
-      containerPort = 8080,
-      hostPort      = 8080
-    }]
-    # ログの設定
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        awslogs-group         = aws_cloudwatch_log_group.backend_ecs_logs.name
-        awslogs-region        = "ap-northeast-1"
-        awslogs-stream-prefix = "ecs"
+  container_definitions = jsonencode([
+    {
+      name  = "${var.pj}-backend-container-${var.env}"
+      image = "${data.aws_caller_identity.self.account_id}.dkr.ecr.ap-northeast-1.amazonaws.com/${var.pj}-backend-private-repository-${var.env}:45728e2451e55a8ff2b4405e0fb6edeb449b1d44"
+      readonlyRootFilesystem = true
+      portMappings = [{
+        containerPort = 8080
+        hostPort      = 8080
+      }]
+      # FireLens用のログ設定
+      logConfiguration = {
+        logDriver = "awsfirelens"
+        options = {}
       }
+      secrets = [
+        {
+          name      = "DB_CONFIG"
+          valueFrom = var.secrets_manager_arn
+        },
+        {
+          name      = "ENV_VAR"
+          valueFrom = aws_secretsmanager_secret.backend_environment.id
+        },
+      ]
     },
-    # 環境変数の設定（SecretsManager）
-    # DB_CONFIG: Terraformで作成したシークレット
-    # ENV_VAR: マネジメントコンソールから作成したシークレット
-    secrets = [
-      {
-        name      = "DB_CONFIG",
-        valueFrom = var.secrets_manager_arn
-      },
-      {
-        name      = "ENV_VAR",
-        valueFrom = aws_secretsmanager_secret.backend_environment.id
-      },
-    ]
-  }])
+    {
+      name  = "log_router"
+      image = "public.ecr.aws/aws-observability/aws-for-fluent-bit:init-latest"
+      readonlyRootFilesystem = false
+      essential = true
+      firelensConfiguration = {
+        type = "fluentbit"
+        options = {
+          enable-ecs-log-metadata = "true"
+        }
+      }
+      environment = [
+        {
+          name  = "aws_fluent_bit_init_s3_1"
+          value = "${aws_s3_bucket.backend_config.arn}/${aws_s3_object.firelens_config.key}"
+        }
+      ]
+      # FireLens用のログ設定
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group = aws_cloudwatch_log_group.backend_ecs_logs.name
+          awslogs-region = "ap-northeast-1"
+          awslogs-stream-prefix = "firelens"
+        }
+      }
+      memoryReservation = 50
+    }
+  ])
 
   lifecycle {
     ignore_changes = [
@@ -104,32 +126,3 @@ resource "aws_ecs_service" "backend_ecs_service" {
   }
 }
 
-resource "aws_security_group" "backend_ecs_sg" {
-  name        = "${var.pj}-backend-ecs-service-sg-${var.env}"
-  description = "ECS Service Security Group"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    from_port       = 8080
-    to_port         = 8080
-    protocol        = "tcp"
-    security_groups = [var.alb_sg_id]
-    cidr_blocks     = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.pj}-backend-ecs-service-sg-${var.env}"
-  }
-}
-
-resource "aws_cloudwatch_log_group" "backend_ecs_logs" {
-  name              = "/ecs/${var.pj}-backend-${var.env}"
-  retention_in_days = 30
-}

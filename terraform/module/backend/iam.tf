@@ -33,6 +33,7 @@ resource "aws_iam_role_policy" "backend_ecs_execution_role" {
           "ecr:BatchGetImage",
           "secretsmanager:GetSecretValue",
           "kms:Decrypt",
+          "s3:*"
         ],
         Resource = "*"
       }
