@@ -1,0 +1,49 @@
+# .github/workflows/docker-cache-retention.yml
+name: Docker Cache Retention
+
+on:
+  schedule:
+    # 毎週月曜日の午前1時（UTC）に実行
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # 手動実行のオプション
+
+jobs:
+  retain-docker-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache-lambda-migrate
+          key: ${{ runner.os }}-buildx-lambda-migrate-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-lambda-migrate-
+
+      # Lambdaコンテナイメージをビルド(type=local)
+      - name: Build Lambda Container Image
+        run: |
+          docker buildx create --use
+          docker buildx build \
+            -t ${{ secrets.PROJECT }}-db-migration-lambda-retention:${{ github.sha }} \
+            -f backend/lambda/migrate/Dockerfile \
+            --cache-from type=local,src=/tmp/.buildx-cache-lambda-migrate \
+            --cache-to type=local,dest=/tmp/.buildx-cache-lambda-migrate-new,mode=max \
+            --load \
+            ./backend
+
+      # キャッシュを移動
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache-lambda-migrate
+          mv /tmp/.buildx-cache-lambda-migrate-new /tmp/.buildx-cache-lambda-migrate
+
+      - name: Report cache status
+        run: |
+          echo "Docker cache retention job completed."
+          echo "Cache size: $(du -sh /tmp/.buildx-cache-lambda-migrate | cut -f1)"
