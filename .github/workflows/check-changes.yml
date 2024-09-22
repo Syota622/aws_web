@@ -40,8 +40,10 @@ jobs:
           backend_changed:
             # - '.github/workflows/**'
             - '.github/workflows/backend-ecs-build-and-deploy.yml'
+            - '.github/workflows/ecs_task_definition/backend_task_definition.json'
             - 'backend/**'
           frontend_changed:
             # - '.github/workflows/**'
             - '.github/workflows/frontend-ecs-build-and-deploy.yml'
+            - '.github/workflows/ecs_task_definition/frontend_task_definition.json'
             - 'frontend/**'
