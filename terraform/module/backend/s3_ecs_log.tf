@@ -3,7 +3,7 @@ resource "aws_s3_bucket" "ecs_log_s3" {
   bucket = "${var.pj}-ecs-logs-${var.env}"
 }
 
-# public access enabled
+# public access block
 resource "aws_s3_bucket_public_access_block" "ecs_log_s3" {
   bucket                  = aws_s3_bucket.ecs_log_s3.id
   block_public_acls       = true
