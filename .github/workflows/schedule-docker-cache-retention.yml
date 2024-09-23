@@ -3,12 +3,16 @@ name: Docker Cache Retention
 
 on:
   schedule:
-    # 毎日1時5分(UTC)に実行
-    - cron: '5 1 * * *'
+    - cron: '30 1 * * *'  # 日本時間で毎日10:30に実行
   workflow_dispatch:  # 手動実行のオプション
 
+env:
+  PROJECT: ${{ secrets.PROJECT }}
+  SHA: ${{ github.sha }}
+  ENV_VAR: prod  # または適切な環境変数
+
 jobs:
-  retain-docker-cache:
+  retain-docker-caches:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -17,7 +21,8 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Cache Docker layers
+      ### Lambda Migrate キャッシュ ###
+      - name: Cache Docker layers for Lambda Migrate
         uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache-lambda-migrate
@@ -25,25 +30,73 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-lambda-migrate-
 
-      # Lambdaコンテナイメージをビルド(type=local)
-      - name: Build Lambda Container Image
+      ### Backend ECS キャッシュ ###
+      - name: Cache Docker layers for Backend ECS
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache-ecs
+          key: ${{ runner.os }}-buildx-backend-ecs-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-backend-ecs-
+
+      ### Frontend ECS キャッシュ ###
+      - name: Cache Docker layers for Frontend ECS
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache-frontend-ecs
+          key: ${{ runner.os }}-buildx-frontend-ecs-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-frontend-ecs-
+
+      ### Lambda Migrate イメージビルド ###
+      - name: Build Lambda Migrate Image
         run: |
-          docker buildx create --use
           docker buildx build \
-            -t db-migration-lambda-retention:${{ github.sha }} \
+            -t "${PROJECT}_db_migration_lambda_retention:${SHA}" \
             -f backend/lambda/migrate/Dockerfile \
             --cache-from type=local,src=/tmp/.buildx-cache-lambda-migrate \
             --cache-to type=local,dest=/tmp/.buildx-cache-lambda-migrate-new,mode=max \
             --load \
             ./backend
 
-      # キャッシュを移動
-      - name: Move cache
+      ### Backend イメージビルド ###
+      - name: Build Backend Image
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            -t "${PROJECT}-backend-private-repository-${ENV_VAR}:${SHA}" \
+            -f backend/docker/${ENV_VAR}/Dockerfile \
+            --cache-from type=local,src=/tmp/.buildx-cache-ecs \
+            --cache-to type=local,dest=/tmp/.buildx-cache-ecs-new,mode=max \
+            --load \
+            .
+
+      ### Frontend イメージビルド ###
+      - name: Build Frontend Image
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            -t "${PROJECT}-frontend-private-repository-${ENV_VAR}:${SHA}" \
+            -f frontend/docker/${ENV_VAR}/Dockerfile \
+            --cache-from type=local,src=/tmp/.buildx-cache-frontend-ecs \
+            --cache-to type=local,dest=/tmp/.buildx-cache-frontend-ecs-new,mode=max \
+            --load \
+            frontend
+
+      ### キャッシュの移動 ###
+      - name: Move caches
         run: |
           rm -rf /tmp/.buildx-cache-lambda-migrate
           mv /tmp/.buildx-cache-lambda-migrate-new /tmp/.buildx-cache-lambda-migrate
+          rm -rf /tmp/.buildx-cache-ecs
+          mv /tmp/.buildx-cache-ecs-new /tmp/.buildx-cache-ecs
+          rm -rf /tmp/.buildx-cache-frontend-ecs
+          mv /tmp/.buildx-cache-frontend-ecs-new /tmp/.buildx-cache-frontend-ecs
 
+      ### キャッシュの状態を報告 ###
       - name: Report cache status
         run: |
           echo "Docker cache retention job completed."
-          echo "Cache size: $(du -sh /tmp/.buildx-cache-lambda-migrate | cut -f1)"
+          echo "Lambda Migrate cache size: $(du -sh /tmp/.buildx-cache-lambda-migrate | cut -f1)"
+          echo "Backend ECS cache size: $(du -sh /tmp/.buildx-cache-ecs | cut -f1)"
+          echo "Frontend ECS cache size: $(du -sh /tmp/.buildx-cache-frontend-ecs | cut -f1)"

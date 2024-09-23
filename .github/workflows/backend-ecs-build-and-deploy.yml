@@ -46,10 +46,10 @@ jobs:
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
-          path: /tmp/.buildx-cache-ecs
-          key: ${{ runner.os }}-buildx-ecs-${{ github.sha }}
+          path: /tmp/.buildx-cache-backend-ecs
+          key: ${{ runner.os }}-buildx-backend-ecs-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-ecs-
+            ${{ runner.os }}-buildx-backend-ecs-
 
       # バックエンドのDockerイメージをビルド(type=local)
       - name: Build Backend Image
@@ -59,16 +59,16 @@ jobs:
             --platform linux/arm64 \
             -t ${{ secrets.PROJECT }}-backend-private-repository-${{ inputs.env_var }}:${{ github.sha }} \
             -f backend/docker/${{ inputs.env_var }}/Dockerfile \
-            --cache-from type=local,src=/tmp/.buildx-cache-ecs \
-            --cache-to type=local,dest=/tmp/.buildx-cache-ecs-new,mode=max \
+            --cache-from type=local,src=/tmp/.buildx-cache-backend-ecs \
+            --cache-to type=local,dest=/tmp/.buildx-cache-backend-ecs-new,mode=max \
             --load \
             .
 
       # キャッシュを移動
       - name: Move cache
         run: |
-          rm -rf /tmp/.buildx-cache-ecs
-          mv /tmp/.buildx-cache-ecs-new /tmp/.buildx-cache-ecs
+          rm -rf /tmp/.buildx-cache-backend-ecs
+          mv /tmp/.buildx-cache-backend-ecs-new /tmp/.buildx-cache-backend-ecs
 
       # イメージにタグを付ける
       - name: Tag Backend Image
