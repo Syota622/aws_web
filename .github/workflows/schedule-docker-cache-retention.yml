@@ -3,7 +3,7 @@ name: Docker Cache Retention
 
 on:
   schedule:
-    - cron: '30 1 * * *'  # 日本時間で毎日10:30に実行
+    - cron: '0 23 * * *' # 日本時間で毎日8:00に実行
   workflow_dispatch:  # 手動実行のオプション
 
 env:
