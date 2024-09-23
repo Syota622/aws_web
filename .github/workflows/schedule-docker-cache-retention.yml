@@ -3,8 +3,8 @@ name: Docker Cache Retention
 
 on:
   schedule:
-    # 毎週月曜日の午前1時（UTC）に実行
-    - cron: '0 0 * * *'
+    # 毎日1時5分(UTC)に実行
+    - cron: '5 1 * * *'
   workflow_dispatch:  # 手動実行のオプション
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
         run: |
           docker buildx create --use
           docker buildx build \
-            -t ${{ secrets.PROJECT }}-db-migration-lambda-retention:${{ github.sha }} \
+            -t db-migration-lambda-retention:${{ github.sha }} \
             -f backend/lambda/migrate/Dockerfile \
             --cache-from type=local,src=/tmp/.buildx-cache-lambda-migrate \
             --cache-to type=local,dest=/tmp/.buildx-cache-lambda-migrate-new,mode=max \
