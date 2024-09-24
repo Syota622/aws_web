@@ -7,8 +7,6 @@ on:
   workflow_dispatch:  # 手動実行のオプション
 
 env:
-  PROJECT: ${{ secrets.PROJECT }}
-  SHA: ${{ github.sha }}
   ENV_VAR: prod  # または適切な環境変数
 
 jobs:
@@ -52,7 +50,7 @@ jobs:
       - name: Build Lambda Migrate Image
         run: |
           docker buildx build \
-            -t "${PROJECT}_db_migration_lambda_retention:${SHA}" \
+            -t "db_migration_lambda_retention:${{ github.sha }}" \
             -f backend/lambda/migrate/Dockerfile \
             --cache-from type=local,src=/tmp/.buildx-cache-lambda-migrate \
             --cache-to type=local,dest=/tmp/.buildx-cache-lambda-migrate-new,mode=max \
@@ -64,7 +62,7 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/arm64 \
-            -t "${PROJECT}-backend-private-repository-${ENV_VAR}:${SHA}" \
+            -t "backend-private-repository-${ENV_VAR}:${{ github.sha }}" \
             -f backend/docker/${ENV_VAR}/Dockerfile \
             --cache-from type=local,src=/tmp/.buildx-cache-ecs \
             --cache-to type=local,dest=/tmp/.buildx-cache-ecs-new,mode=max \
@@ -76,7 +74,7 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/arm64 \
-            -t "${PROJECT}-frontend-private-repository-${ENV_VAR}:${SHA}" \
+            -t "frontend-private-repository-${ENV_VAR}:${{ github.sha }}" \
             -f frontend/docker/${ENV_VAR}/Dockerfile \
             --cache-from type=local,src=/tmp/.buildx-cache-frontend-ecs \
             --cache-to type=local,dest=/tmp/.buildx-cache-frontend-ecs-new,mode=max \
