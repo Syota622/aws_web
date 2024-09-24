@@ -3,23 +3,23 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
     target-branch: main
   
   - package-ecosystem: gomod
     directory: /backend
     schedule:
-      interval: daily
+      interval: weekly
     target-branch: main
     
   - package-ecosystem: npm
     directory: /frontend
     schedule:
-      interval: daily
+      interval: weekly
     target-branch: main
 
   - package-ecosystem: terraform
     directory: /terraform
     schedule:
-      interval: daily
+      interval: weekly
     target-branch: main
