@@ -8,6 +8,7 @@ on:
 
 env:
   ENV_VAR: prod  # または適切な環境変数
+  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
 
 jobs:
   retain-docker-caches:
@@ -98,3 +99,12 @@ jobs:
           echo "Lambda Migrate cache size: $(du -sh /tmp/.buildx-cache-lambda-migrate | cut -f1)"
           echo "Backend ECS cache size: $(du -sh /tmp/.buildx-cache-ecs | cut -f1)"
           echo "Frontend ECS cache size: $(du -sh /tmp/.buildx-cache-frontend-ecs | cut -f1)"
+
+      # テスト失敗時はこちらのステップが実行される
+      - name: Slack Notification on Failure
+        uses: rtCamp/action-slack-notify@v2.0.2
+        if: failure()
+        env:
+          SLACK_CHANNEL: ci
+          SLACK_TITLE: Test Failure
+          SLACK_COLOR: danger
