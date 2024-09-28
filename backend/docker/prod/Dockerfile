@@ -1,5 +1,5 @@
 ### ビルド用ステージ ###
-FROM golang:1.22-alpine as builder
+FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY backend/. .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o main .
 
 ### 本番用ステージ ###
-FROM alpine:3.19.1 as production
+FROM alpine:3.19.1 AS production
 
 # 必要なパッケージのインストールとキャッシュのクリア
 RUN apk update && apk add --no-cache mysql-client jq

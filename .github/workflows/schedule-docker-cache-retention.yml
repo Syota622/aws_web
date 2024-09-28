@@ -104,7 +104,7 @@ jobs:
           echo "Backend ECS cache size: $(du -sh /tmp/.buildx-cache-ecs | cut -f1)"
           echo "Frontend ECS cache size: $(du -sh /tmp/.buildx-cache-frontend-ecs | cut -f1)"
 
-      # テスト失敗時はこちらのステップが実行される
+      # 失敗時はこちらのステップが実行される
       - name: Slack Notification on Failure
         uses: rtCamp/action-slack-notify@v2.0.2
         if: failure()
