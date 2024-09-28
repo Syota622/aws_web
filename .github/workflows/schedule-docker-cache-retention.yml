@@ -113,6 +113,7 @@ jobs:
         if: failure()
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_TITLE: GitHub Comment
+          SLACK_TITLE: GitHub Actions 失敗通知
           SLACK_COLOR: danger
-          SLACK_MESSAGE: '<!here> Docker Cache Retention job failed!'
+          SLACK_MESSAGE: '<!here> ECSビルドとデプロイジョブが失敗しました。詳細を確認してください。'
+          SLACK_FOOTER: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
