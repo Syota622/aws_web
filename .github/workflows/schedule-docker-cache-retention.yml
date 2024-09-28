@@ -16,7 +16,7 @@ jobs:
   retain-docker-caches:
     runs-on: ubuntu-latest
     environment: 
-      name: ${{ env.ENV_VAR }}
+      name: prod
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
