@@ -54,6 +54,7 @@ jobs:
       ### Lambda Migrate イメージビルド ###
       - name: Build Lambda Migrate Image
         run: |
+          docker buildx create --use
           docker buildx build \
             -t "db_migration_lambda_retention:${{ github.sha }}" \
             -f backend/lambda/migrate/Dockerfile \
@@ -65,6 +66,7 @@ jobs:
       ### Backend イメージビルド ###
       - name: Build Backend Image
         run: |
+          docker buildx create --use
           docker buildx build \
             --platform linux/arm64 \
             -t "backend-private-repository-${ENV_VAR}:${{ github.sha }}" \
@@ -77,6 +79,7 @@ jobs:
       ### Frontend イメージビルド ###
       - name: Build Frontend Image
         run: |
+          docker buildx create --use
           docker buildx build \
             --platform linux/arm64 \
             -t "frontend-private-repository-${ENV_VAR}:${{ github.sha }}" \
