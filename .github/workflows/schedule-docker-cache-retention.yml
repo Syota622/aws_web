@@ -4,11 +4,14 @@ name: Docker Cache Retention
 on:
   schedule:
     - cron: '0 23 * * *' # 日本時間で毎日8:00に実行
+  push:
+    branches: 
+    - "main"
   workflow_dispatch:  # 手動実行のオプション
 
 env:
   ENV_VAR: prod  # または適切な環境変数
-  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
 jobs:
   retain-docker-caches:
