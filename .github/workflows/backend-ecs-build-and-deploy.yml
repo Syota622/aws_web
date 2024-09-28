@@ -113,5 +113,4 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_TITLE: GitHub Actions 失敗通知
           SLACK_COLOR: danger
-          SLACK_MESSAGE: '<!here> GitHub Actions 失敗通知'
-          SLACK_FOOTER: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          SLACK_MESSAGE: '<!here> ワークフロー "${{ github.workflow }}" のジョブ "${{ github.job }}" が失敗しました。'
