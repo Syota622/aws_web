@@ -54,6 +54,7 @@ jobs:
       ### Lambda Migrate イメージビルド ###
       - name: Build Lambda Migrate Image
         run: |
+          docker buildx create --use
           docker buildx build \
             -t "db_migration_lambda_retention:${{ github.sha }}" \
             -f backend/lambda/migrate/Dockerfile \
@@ -65,6 +66,7 @@ jobs:
       ### Backend イメージビルド ###
       - name: Build Backend Image
         run: |
+          docker buildx create --use
           docker buildx build \
             --platform linux/arm64 \
             -t "backend-private-repository-${ENV_VAR}:${{ github.sha }}" \
@@ -77,6 +79,7 @@ jobs:
       ### Frontend イメージビルド ###
       - name: Build Frontend Image
         run: |
+          docker buildx create --use
           docker buildx build \
             --platform linux/arm64 \
             -t "frontend-private-repository-${ENV_VAR}:${{ github.sha }}" \
@@ -104,13 +107,12 @@ jobs:
           echo "Backend ECS cache size: $(du -sh /tmp/.buildx-cache-ecs | cut -f1)"
           echo "Frontend ECS cache size: $(du -sh /tmp/.buildx-cache-frontend-ecs | cut -f1)"
 
-      # テスト失敗時はこちらのステップが実行される
+      # 失敗時はこちらのステップが実行される
       - name: Slack Notification on Failure
         uses: rtCamp/action-slack-notify@v2.0.2
         if: failure()
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_TITLE: GitHub Comment
+          SLACK_TITLE: GitHub Actions 失敗通知
           SLACK_COLOR: danger
-          SLACK_MESSAGE: '<!here> Docker Cache Retention job failed!'
-          SLACK_USERNAME: GitHub Actions
+          SLACK_MESSAGE: '<!here> ワークフロー "${{ github.workflow }}" のジョブ "${{ github.job }}" が失敗しました。'

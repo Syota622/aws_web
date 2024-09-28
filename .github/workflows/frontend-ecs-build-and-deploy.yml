@@ -142,3 +142,13 @@ jobs:
             --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
             --description "Deployment from GitHub Actions" \
             --region ${{ env.AWS_REGION }}
+
+      # 失敗時はこちらのステップが実行される
+      - name: Slack Notification on Failure
+        uses: rtCamp/action-slack-notify@v2.0.2
+        if: failure()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_TITLE: GitHub Actions 失敗通知
+          SLACK_COLOR: danger
+          SLACK_MESSAGE: '<!here> ワークフロー "${{ github.workflow }}" のジョブ "${{ github.job }}" が失敗しました。'
