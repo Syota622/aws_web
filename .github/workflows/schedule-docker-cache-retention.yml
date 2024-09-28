@@ -11,7 +11,6 @@ on:
 
 env:
   ENV_VAR: prod  # または適切な環境変数
-  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
 jobs:
   retain-docker-caches:
@@ -107,10 +106,8 @@ jobs:
       - name: Slack Notification on Failure
         uses: rtCamp/action-slack-notify@v2.0.2
         if: failure()
-        with:
-          # # main -> prod, develop -> dev, feature/* -> prod, その他 -> ''
-          env_var: ${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' || startsWith(github.ref, 'refs/heads/feature/') && 'prod' || '' }}
         env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_CHANNEL: ci
           SLACK_TITLE: Test Failure
           SLACK_COLOR: danger
