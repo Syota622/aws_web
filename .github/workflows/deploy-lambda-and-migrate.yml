@@ -181,4 +181,3 @@ jobs:
           SLACK_TITLE: GitHub Comment
           SLACK_COLOR: danger
           SLACK_MESSAGE: '<!here> Docker Cache Retention job failed!'
-          SLACK_USERNAME: GitHub Actions
