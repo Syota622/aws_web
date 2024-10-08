@@ -5,7 +5,7 @@ require (
 	github.com/99designs/gqlgen v0.17.54
 	github.com/aws/aws-sdk-go-v2 v1.32.1
 	github.com/aws/aws-sdk-go-v2/config v1.27.42
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.45.3
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.46.1
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
