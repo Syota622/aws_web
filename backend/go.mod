@@ -2,7 +2,7 @@ module golang
 
 go 1.21.3
 require (
-	github.com/99designs/gqlgen v0.17.54
+	github.com/99designs/gqlgen v0.17.55
 	github.com/aws/aws-sdk-go-v2 v1.32.1
 	github.com/aws/aws-sdk-go-v2/config v1.27.42
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.45.3
