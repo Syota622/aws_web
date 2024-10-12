@@ -36,5 +36,5 @@ RUN go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@la
 RUN go install gorm.io/gen/tools/gentool@latest
 
 # airのインストール
-RUN go install github.com/air-verse/air@v1.60.0
+RUN go install github.com/cosmtrek/air@v1.44.0
 CMD ["air"]
