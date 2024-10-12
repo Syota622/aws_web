@@ -1,6 +1,9 @@
 module golang
 
-go 1.21.3
+go 1.22.5
+
+toolchain go1.22.8
+
 require (
 	github.com/99designs/gqlgen v0.17.55
 	github.com/aws/aws-sdk-go-v2 v1.32.1
