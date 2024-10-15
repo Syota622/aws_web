@@ -6,6 +6,8 @@ WORKDIR /app
 # パッケージファイルのみをコピーして依存関係をインストール
 COPY package*.json ./
 RUN npm ci --no-cache
+# # npm ciの代わりにnpm installを使用し、--legacy-peer-depsオプションを追加
+# RUN npm install --legacy-peer-deps
 
 # 残りのファイルをコピーしてビルド
 COPY . .
