@@ -4,9 +4,9 @@ name: Docker Cache Retention
 on:
   schedule:
     - cron: '0 23 * * *' # 日本時間で毎日8:00に実行
-  push:
-    branches: 
-    - "main"
+  # push:
+  #   branches: 
+  #   - "main"
   workflow_dispatch:  # 手動実行のオプション
 
 env:
