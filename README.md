@@ -5,6 +5,7 @@ AWSのエンジニアとしてのスキルをアピールしていますが、
 あまりクオリティは高くありません。
 「仕様書」にて、本サイトの機能や実装方法、Figma、チケット管理を学びました。
 terraformやGithub ActionsのCI/CDを駆使して、GolangとNext.jsのデプロイを自動化しました。
+GitHub CopilotやCode Rabbitを利用
 
 # AWS全体構成図
 - AWSの全体構成図です。
