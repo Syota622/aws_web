@@ -1,15 +1,15 @@
 # 本ポートフォリオの概要
 メインはAWSのインフラ構築・GitHub ActionsのCI/CDです。  
-知見を増やすために、バックエンド(Golang)とフロントエンド(Next.js)の開発も行っていますが、クオリティは高くありません。  
+知見を増やすために、バックエンド(Golang)とフロントエンド(Next.js)もコーディングしてますが、クオリティは高くありません。  
 「仕様書」にて、本サイトの機能や実装方法、Figma、チケット管理を学びました。  
-terraformやGithub ActionsのCI/CDを駆使して、GolangとNext.jsのデプロイを自動化しました。  
+Terraformを用いて、AWSの環境を構築しました。  
+Github ActionsのCI/CDを駆使して、GolangとNext.jsのデプロイを自動化しました。  
 GitHub CopilotやCode Rabbitを利用して、コードの自動生成を行いました。  
 
 # AWS全体構成図
 - AWSの全体構成図です。
 - その他の機能は下記の通りです
   - ECS Blue/Green Deployment
-  - Firelensによるログ形式の変更やCloudWatch Logsへの出力
   - ハッシュ値を用いたECRイメージのバージョン管理
 ![AWS全体構成図](./AWS全体構成図.png)
 
