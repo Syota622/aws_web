@@ -1,6 +1,6 @@
 # 本ポートフォリオの概要
-メインはAWSのインフラ構築・GitHub ActionsのCI/CDです。  
-知見を増やすために、バックエンド(Golang)とフロントエンド(Next.js)もコーディングしてますが、クオリティは高くありません。  
+メインはAWS・Terraformのインフラ構築・GitHub ActionsによるCI/CDの自動化です。  
+知見を増やすために、バックエンド(Golang)とフロントエンド(Next.js)も多少コーディングしてますが、クオリティは高くありません。  
 「仕様書」にて、本サイトの機能や実装方法、Figma、チケット管理を学びました。  
 Terraformを用いて、AWSの環境を構築しました。  
 Github ActionsのCI/CDを駆使して、GolangとNext.jsのデプロイを自動化しました。  
