@@ -1,0 +1,8 @@
+memory, cpuの指定は必須のため、
+基本的に、GitHub Actionsでタスク定義のDescribeを取得して、
+その値を使用するようにする方が良い
+memory, cpuは、dev, stg, prodで異なるため、ファイルでの管理は難しい
+
+memory, cpuを無視した形で、APIを実行した場合もエラーになることを確認済み
+An error occurred (ClientException) when calling the RegisterTaskDefinition operation: 
+Invalid setting for container 'learn-frontend-container-prod'. At least one of 'memory' or 'memoryReservation' must be specified.
