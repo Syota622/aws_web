@@ -98,6 +98,27 @@ jobs:
           NEW_TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION" --query 'taskDefinition.taskDefinitionArn' --output text)
           echo "NEW_TASK_DEFINITION_ARN=$NEW_TASK_DEFINITION_ARN" >> "$GITHUB_ENV"
 
+        # jsonファイルを利用しないで、タスク定義を登録する場合の方法（本来であれば、こちらが正である）
+        # # イメージ名の生成
+        # NEW_IMAGE=235484765172.dkr.ecr.ap-northeast-1.amazonaws.com/learn-frontend-private-repository-prod:12345
+
+        # # タスク定義名の設定
+        # TASK_DEFINITION_NAME=learn-frontend-task-definition-prod
+
+        # # 現在のタスク定義を取得して整形
+        # TASK_DEFINITION=$(aws ecs describe-task-definition \
+        #   --task-definition $TASK_DEFINITION_NAME \
+        #   --query taskDefinition)
+
+        # # 不要なフィールドを削除し、新しいイメージを設定
+        # NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | \
+        #   jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' | \
+        #   jq --arg IMAGE "$NEW_IMAGE" \
+        #   '.containerDefinitions[0].image = $IMAGE')
+
+        # # 新しいタスク定義を登録
+        # aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION"
+
       # CodeDeployを使用してデプロイを開始
       - name: Prepare AppSpec and Deploy to ECS using CodeDeploy
         run: |
