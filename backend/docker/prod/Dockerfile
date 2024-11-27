@@ -15,12 +15,15 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o main .
 ### 本番用ステージ ###
 FROM alpine:3.19.1 AS production
 
-# 必要なパッケージのインストールとキャッシュのクリア
-RUN apk update && apk add --no-cache mysql-client jq
+# # 必要なパッケージのインストールとキャッシュのクリア
+# RUN apk update && apk add --no-cache mysql-client jq
 
 WORKDIR /app
 
 COPY --from=builder /app/main .
+
+# 脆弱性対策により、COPYの後に、apk updateを実行する
+RUN apk update && apk add --no-cache mysql-client jq
 
 # 環境変数を読み込んでMySQLに接続するスクリプトを追加
 COPY backend/connect_to_mysql.sh /app/connect_to_mysql.sh
