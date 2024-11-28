@@ -42,7 +42,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Dockerキャッシュをセットアップ
+      # リーモーキャッシュというやり方もあるため、覚えておく
+      # https://engineers.fenrir-inc.com/entry/2024/11/05/095110
+      # Dockerキャッシュをセットアップ（ローカルキャッシュ）
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
