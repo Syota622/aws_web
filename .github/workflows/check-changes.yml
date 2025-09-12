@@ -24,7 +24,7 @@ jobs:
     # リポジトリのコードをチェックアウト
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     # パスのフィルターを適用することで、変更の有無を判定する
     - name: Check Paths
