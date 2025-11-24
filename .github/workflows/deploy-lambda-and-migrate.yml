@@ -18,7 +18,7 @@ jobs:
     steps:
       # リポジトリのコードをチェックアウト
       - name: Checkout Code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       # AWS認証情報を設定
       - name: Configure AWS credentials
