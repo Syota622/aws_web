@@ -26,7 +26,7 @@ jobs:
 
       ### Lambda Migrate キャッシュ ###
       - name: Cache Docker layers for Lambda Migrate
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /tmp/.buildx-cache-lambda-migrate
           key: ${{ runner.os }}-buildx-lambda-migrate-${{ github.sha }}
@@ -35,7 +35,7 @@ jobs:
 
       ### Backend ECS キャッシュ ###
       - name: Cache Docker layers for Backend ECS
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /tmp/.buildx-cache-ecs
           key: ${{ runner.os }}-buildx-backend-ecs-${{ github.sha }}
@@ -44,7 +44,7 @@ jobs:
 
       ### Frontend ECS キャッシュ ###
       - name: Cache Docker layers for Frontend ECS
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /tmp/.buildx-cache-frontend-ecs
           key: ${{ runner.os }}-buildx-frontend-ecs-${{ github.sha }}

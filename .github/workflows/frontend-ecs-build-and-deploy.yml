@@ -46,7 +46,7 @@ jobs:
       # https://engineers.fenrir-inc.com/entry/2024/11/05/095110
       # Dockerキャッシュをセットアップ（ローカルキャッシュ）
       - name: Cache Docker layers
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /tmp/.buildx-cache-frontend-ecs
           key: ${{ runner.os }}-buildx-frontend-ecs-${{ github.sha }}

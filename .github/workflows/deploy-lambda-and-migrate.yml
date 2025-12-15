@@ -38,7 +38,7 @@ jobs:
 
       # Dockerキャッシュをセットアップ
       - name: Cache Docker layers
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /tmp/.buildx-cache-lambda-migrate
           key: ${{ runner.os }}-buildx-lambda-migrate-${{ github.sha }}
