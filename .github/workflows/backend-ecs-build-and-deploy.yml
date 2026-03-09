@@ -40,7 +40,7 @@ jobs:
 
       # Docker Buildxをセットアップ
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       # リーモーキャッシュというやり方もあるため、覚えておく
       # https://engineers.fenrir-inc.com/entry/2024/11/05/095110
